@@ -1,0 +1,55 @@
+
+2017.03.10
+
+#Using a new output format to replace the annovar.
+#New pipelines after output a merged vcf.
+
+
+#############Command Lines########################
+### 1.split, left-align, and trim their variants.
+###
+
+vt decompose -s 1_S1.vcf | vt normalize -r ucsc.hg19.fasta - > 1_S1.vt.vcf
+
+
+
+#############Command Lines########################
+### 2.Annotate with VEP and make it gz and make index.
+###
+
+perl variant_effect_predictor.pl -i {vt_vcf} --cache --merged --fasta {REF} --sift b --polyphen b --symbol
+--numbers
+        --biotype
+        --total_length
+        --canonical --ccds
+        -o {vep_output_vcf}
+        --vcf
+        --hgvs
+        --gene_phenotype
+        --uniprot
+        --force_overwrite
+        --port 3337
+        --domains --regulatory
+        --protein --tsl
+        --variant_class
+	--fork {threads}
+	--force
+	--no_stats >> {vep_log} 2>&1
+
+bgzip -c {vep_output_vcf} > {vep_output_vcf_gz}
+tabix -p vcf {vep_output_vcf_gz}
+
+#############Command Lines########################
+### 3.Load it into gemini db and output.
+###
+
+gemini load --cores {threads} -t VEP -v {vep_output_vcf_gz} {Output_db}
+
+#Optional : -p pedigree file.
+
+gemini annotate -f {vep_output_vcf_gz} \
+				-a extract \
+				-c SAD,SAF,AF,BaseQRankSum,FS,MQRankSum,ReadPosRankSum,SOR \
+				-t text,text,text,float,float,float,float,float
+				-o list,list,list,mean,mean,mean,mean,mean \
+				{Output_db} >> {gemini_log} 2>&1
