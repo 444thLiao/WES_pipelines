@@ -1,4 +1,4 @@
-import re,glob,pandas
+import re,glob,pandas,threading
 #from pandas import DataFrame as df
 #import seaborn as sns
 import time
@@ -16,17 +16,19 @@ def cov_depth(cov_info):
     d10 = len(raw_info[raw_info.base > 10])
     d20 = len(raw_info[raw_info.base > 20])
     result = sum(list(raw_info.base))
-    return result,[d1,d5,d10,d20]
+    print cov_info,result,[d1,d5,d10,d20]
+
 
 
 
 df_bucket = []
-for path in glob.glob('/home/liaoth/project_formal/170123_XK/output/XK_result/XK-*/XK-*_sorted_sorted_cov.info'):
-    print 'processing......',path
-    t1=time.time()
-    total_bp_in_target,depth_per = cov_depth(path)
-    print total_bp_in_target,depth_per
-    print 'down...one.....used',time.time()-t1
+for path in glob.glob('/home/liaoth/project_formal/170801_XK/output/XK_result/XK-*/XK-*_cov.info'):
+    t = threading.Thread(target=cov_depth,kwargs={'cov_info':path})
+    #print 'processing......',path
+    t.setDaemon(True)
+    t.start()
+    #print total_bp_in_target,depth_per
+    print 'down.....used'
 
 # a = pandas.concat(df_bucket)
 # with open('/home/liaoth/project_formal/170123_XK/cov_for_plot','w') as f1:

@@ -21,11 +21,12 @@ def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'
     ####define each file path.
     result = 'Gene\tChr\tPosistion\tReference\tbase\tA\tC\tG\tT\tA_Rate\tC_Rate\tG_Rate\tT_Rate\t1\t2\t3\t4\n'
     #define columns.
-    print 'Loading required file. using %d' % (time.time()-t1)
+    #print 'Loading required file. using %d' % (time.time()-t1)
     print 'STARTING TO ITERATION. using '
     t2=time.time()
     total = len(bed_file)
     pbar = ProgressBar().start()
+    count = 0
     for i in range(len(bed_file)):
         Chr = bed_file.iloc[i, 0]
         start = min(int(bed_file.iloc[i, 2]), int(bed_file.iloc[i, 1]))
@@ -47,6 +48,7 @@ def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'
                     range(start, end + 1).index(base_n)] + '\t' + '\t'
                 for base in ['A', 'C', 'G', 'T']:
                     result += str(base_counter[base][range(start, end + 1).index(base_n)]) + '\t'
+                    count += base_counter[base][range(start, end + 1).index(base_n)]
                     #write the A/T/G/C num.
 
                 for base in ['A', 'C', 'G', 'T']:
@@ -64,11 +66,12 @@ def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'
             #in case the last base didn't have any base, it will continue, so need to check the last sign.
         else:
             pass
-        pbar.update(int((i / (total - 1)) * 100))
+        pbar.update(int((float(i) / (total - 1)) * 100))
     pbar.finish()
     with open(bam_path.partition('.')[0]+'_cov.info', 'w') as f1:
         f1.write(result)
-    print 'Cal cov info complete'
+
+    print 'Cal cov info complete.total base is ',count,bam_path
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

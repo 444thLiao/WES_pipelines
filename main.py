@@ -1,4 +1,4 @@
-import argparse, sys,os
+import argparse, sys,os,glob
 from luigi.cmdline import luigi_run
 from somatic_filter_script import pair_filter,single_filter
 import parse_PCR2bed
@@ -51,8 +51,25 @@ def formatter_output(args):
         val = args
         parsed_name = pfn(PE1_fmt.format(input=val),'all')
 
-    output = """Current Variants: Please make sure your variants is right.\n\n\nInput path: {b_i}\noutput path: {b_o}\nSig represent NORMAL: {sig_n}\nSig represent TUMOR: {sig_T}\nPair file format: {pe_fmt}\nOne of args filename parsed: {parsed_result}
-    """.format(b_i=base_inpath,b_o=base_outpath,sig_n=NORMAL_SIG,sig_T=TUMOR_SIG,pe_fmt=PE1_fmt,parsed_result=str(parsed_name))
+    if not self_adjust_fn:
+        fq_file = PE1_fmt.format(input=val)
+    else:
+        input_list = glob.glob(base_inpath + '/*' + val + '*')
+        if filter_str:
+            input_list = [_i.replace(fq_suffix, '') for _i in input_list if filter_str not in _i]
+        fq_file = input_list[0]
+
+    output = """Current Variants: Please make sure your variants is right.\n\n
+    Input path: {b_i}
+    output path: {b_o}
+    Sig represent NORMAL: {sig_n}
+    Sig represent TUMOR: {sig_T}
+    Pair file format: {pe_fmt}
+    input_fastq_file example:{fq}\n
+
+    One of args filename parsed: {parsed_result}""".format(b_i=base_inpath, b_o=base_outpath, sig_n=NORMAL_SIG,
+                                                           sig_T=TUMOR_SIG, pe_fmt=PE1_fmt, fq=fq_file,
+                                                           parsed_result=str(parsed_name))
     return output
 
 if __name__ == '__main__':

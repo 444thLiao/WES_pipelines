@@ -1,4 +1,4 @@
-import os, glob,time
+import glob,time
 import luigi
 from parse_file_name import pfn
 from collections import defaultdict
@@ -58,7 +58,7 @@ class GenerateSam_pair(luigi.Task):
             else:
                 input_list = glob.glob(base_inpath + '/*' + self.sampleID + '*')
                 if filter_str:
-                    input_list = [_i.replace('.fastq.gz','') for _i in input_list if filter_str not in _i]
+                    input_list = [_i.replace(fq_suffix,'') for _i in input_list if filter_str not in _i]
                 input1 = [_i for _i in input_list if R1_INDICATOR in _i][0]
                 input2 = [_i for _i in input_list if R2_INDICATOR in _i][0]
             return QC_trimmomatic(PE1=os.path.basename(input1), PE2=os.path.basename(input2))
@@ -68,7 +68,7 @@ class GenerateSam_pair(luigi.Task):
             else:
                 input_list = glob.glob(base_inpath + '/*' + self.sampleID + '*')
                 if filter_str:
-                    input_list = [_i.replace('.fastq.gz','') for _i in input_list if filter_str not in _i]
+                    input_list = [_i.replace(fq_suffix,'') for _i in input_list if filter_str not in _i]
                 input1 = [_i for _i in input_list if R1_INDICATOR in _i][0]
             return QC_trimmomatic(PE1=os.path.basename(input1))
 
@@ -126,7 +126,7 @@ class sorted_bam(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.bam', '_sorted.bam'))
 
     def run(self):
-        cmdline="samtools sort -m 100G -f -@ 30 %s %s" % (self.input()[0].path, self.output().path)
+        cmdline="samtools sort -m 60G -f -@ 30 %s %s" % (self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
         cmdline='samtools index %s' % self.output().path
@@ -345,13 +345,13 @@ class Annovar2(luigi.Task):
         return [Annovar1(sample_ID=self.sample_ID)]
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.rpartition('.merged.av')[0] + '.merged.anno.hg19_multianno.csv')
+        return luigi.LocalTarget(self.input()[0].path.rpartition('.merged.av')[0] + '.merged.anno.csv')
 
     def run(self):
         prefix = self.input()[0].path.rpartition('.merged.av')[0]
 
         cmdline="table_annovar.pl %s ~/tools/annovar/humandb/ -buildver hg19 --remove --otherinfo -protocol refGene,phastConsElements46way,genomicSuperDups,esp6500siv2_all,1000g2014oct_all,exac03,snp138,ljb26_all,clinvar_20160302 -operation g,r,r,f,f,f,f,f,f -nastring . --otherinfo --csvout --thread 20 --outfile %s --argument '-exonicsplicing -splicing 25',,,,,,,," % (
-                prefix + '.merged.av', prefix + '.merged.anno')
+                prefix + '.merged.av', prefix + '.merged.anno.csv')
         os.system(cmdline)
         record_cmdline(cmdline+'\n\n\n\n'+'{:#^50}'.format('NORMALLY END pipelines'))
 
