@@ -11,6 +11,7 @@ def venn2_draw(csv1,csv2,output,labels=[]):
         ax = venn2_unweighted([set(index1),set(index2)],set_labels=labels)
         ax.get_label_by_id('A').set_fontsize(25)
         ax.get_label_by_id('B').set_fontsize(25)
+        ax.title = ''
         for _i in ax.subset_labels:
             _i.set_fontsize(25)
         pyplot.savefig(output)
@@ -68,3 +69,4 @@ def extract_shared_snvs(csv1,csv2,output,samples = []):
     for _i in _temp:
         former_cols.insert(5,_i)
     merged_df.loc[:,former_cols].to_csv(output,index=False)
+

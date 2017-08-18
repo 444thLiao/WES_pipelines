@@ -34,7 +34,6 @@ def init_compare(input1,input2,labels=None):
         result['shared'] = input1_df.loc[set(input1_df_index).intersection(set(input2_df_index)),:]
         return result
 
-
 stats={}
 stats_index = {}
 stats['Total tumor coverage = 0'] = len(a[a.loc[:,['T_mut_cov','N_ref_cov']].sum(1)==0])

@@ -1,31 +1,40 @@
 from pandas import DataFrame as df
-from collections import Counter
+from collections import Counter,defaultdict
+import os
 def make_summary(input_csv):
-    result = 'Gene_fun\tExonic_fun\tcount\n'
-    cache_df = df.from_csv(input_csv,index_col=False)
-    funcs = set(cache_df.loc[:,'Func.refGene'])
-    for _func in funcs:
-        counter_yet = Counter(list(cache_df[cache_df.loc[:,'Func.refGene'] == _func].loc[:,'ExonicFunc.refGene']))
-        for _k in sorted(counter_yet.keys()):
-            result += '%s\t%s\t%s\n' % (_func,_k,str(counter_yet[_k]))
-    return result
+    if type(input_csv) == str:
+        result = 'Gene_fun\tExonic_fun\tcount\n'
+        cache_df = df.from_csv(input_csv,index_col=False)
+        funcs = set(cache_df.loc[:,'Func.refGene'])
+        for _func in funcs:
+            counter_yet = Counter(list(cache_df[cache_df.loc[:,'Func.refGene'] == _func].loc[:,'ExonicFunc.refGene']))
+            for _k in sorted(counter_yet.keys()):
+                result += '%s\t%s\t%s\n' % (_func,_k,str(counter_yet[_k]))
+        return result
+    else:
+        result = 'Gene_fun\tExonic_fun'
+        fields_bucket = defaultdict(list)
+        for path in input_csv:
+            cache_df = df.from_csv(path,index_col=False)
+            funcs = set(cache_df.loc[:, 'Func.refGene'])
+            for _func in funcs:
+                fields_bucket[_func] += list(set(cache_df[cache_df.loc[:,'Func.refGene'] == _func].loc[:,'ExonicFunc.refGene']))
+            result += '\t' + os.path.basename(path).split('_')[0]
+        result+='\n'
+        for _k in fields_bucket.keys():
+            fields_bucket[_k] = list(set(fields_bucket[_k]))
 
-
-
-def extract_unpass_snv(withpass_filter_csv,withoutpass_filter_csv):
-    withpass_filter_df = df.from_csv(withpass_filter_csv, index_col=False)
-    withoutpass_filter_df = df.from_csv(withoutpass_filter_csv, index_col=False)
-
-    withpass_filter_index = [';'.join([str(_i) for _i in list(withpass_filter_df.iloc[_idx, :5])]) for _idx in list(withpass_filter_df.index)]
-    withoutpass_filter_index = [';'.join([str(_i) for _i in list(withoutpass_filter_df.iloc[_idx, :5])]) for _idx in list(withoutpass_filter_df.index)]
-
-    withpass_filter_df.index = withpass_filter_index
-    withoutpass_filter_df.index = withoutpass_filter_index
-
-    result_index = set(withoutpass_filter_index).difference(set(withpass_filter_index))
-    return withoutpass_filter_df.loc[result_index,:]
-
-
+        for _func in fields_bucket.keys():
+            for exonic in fields_bucket[_func]:
+                for path in input_csv:
+                    cache_df = df.from_csv(path, index_col=False)
+                    count = len(cache_df[(cache_df.loc[:,'Func.refGene']== _func) & (cache_df.loc[:,'ExonicFunc.refGene']== exonic)])
+                    if not result.endswith('\n'):
+                        result += '\t%s' % str(count)
+                    else:
+                        result += '%s\t%s\t%s' % (_func, exonic, str(count))
+                result += '\n'
+        return result
 
 def construct_biomarkers_csv(snvs_indels_biomarkers,snvs_indels_tiers,output_csv):
     cols = ['GENOMIC_CHANGE',

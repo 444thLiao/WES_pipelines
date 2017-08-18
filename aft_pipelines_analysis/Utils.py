@@ -1,5 +1,5 @@
 #from __future__ import absolute_import
-
+import pandas
 def extract2dict(Otherinfo):
     _info = Otherinfo.split('\t')
     _n = _info[-2].split(':')
@@ -166,3 +166,35 @@ def pfn(filename, wanted):
         return storged_dict
     else:
         return storged_dict[wanted]
+
+def csv_compare(csv1,csv2,compare_type = 'diff'):
+    info_df1 = df.from_csv(csv1,sep=',',index_col=False)
+    info_df2 = df.from_csv(csv2,sep=',',index_col=False)
+    info_df1_index = [';'.join([str(_i) for _i in list(info_df1.iloc[_idx, :5])]) for _idx in list(info_df1.index)]
+    info_df2_index = [';'.join([str(_i) for _i in list(info_df2.iloc[_idx, :5])]) for _idx in list(info_df2.index)]
+
+    info_df1.index = info_df1_index
+    info_df2.index = info_df2_index
+
+    if compare_type=='diff':
+        return {'csv1':info_df1.ix[set(info_df1_index).difference(set(info_df2_index))],
+                'csv2':info_df2.ix[set(info_df2_index).difference(set(info_df1_index))]}
+    elif compare_type=='add':
+        new_df = pandas.concat([info_df1, info_df2])
+        new_df.index= range(len(new_df))
+        return new_df
+    #TODO
+
+def typeing_with_gene(extracted_info_df,query_df,query_fields='Gene Name',fetch_field=['Mechanism']):
+    gene_list = extracted_info_df.loc[:,'Gene.refGene']
+    index_list = list(extracted_info_df.index)
+    gene_list = [_i.split(';') for _i in gene_list]
+
+    for idx,genes in zip(index_list,gene_list):
+        extracted_mechanism = query_df[query_df.loc[:,query_fields].isin(genes)].loc[:,fetch_field].values.tolist()
+        extracted_mechanism = list(set([_m[0] for _m in extracted_mechanism]))
+        if 'mechanism' not in extracted_info_df.columns:
+            extracted_info_df.loc[:,'mechanism'] = ''
+
+        extracted_info_df.loc[idx,'mechanism'] = ';'.join(extracted_mechanism)
+    return extracted_info_df

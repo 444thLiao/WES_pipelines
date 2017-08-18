@@ -7,7 +7,7 @@ import luigi
 import glob,time
 from main import *
 
-def record_cmdline(message,default = base_outpath+'/somatic_pipelines.log'):
+def record_cmdline(message,default = base_outpath+'/germline_pipelines.log'):
     if os.path.isfile(default):
         with open(default,'a') as f1:
             f1.write(time.ctime()+' '*4+message+'\n')

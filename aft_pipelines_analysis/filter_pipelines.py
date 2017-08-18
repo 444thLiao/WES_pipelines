@@ -231,9 +231,9 @@ if __name__ == '__main__':
     arg_list = [int(_i) for _i in args.pipelines.split(',')]
     output_file = args.output
     # filter_pipelines2('/home/liaoth/project/170602_XK/server_result/germline/XK-8W_S18.merged.anno.hg19_multianno.csv',
-    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8W.mt2.merged.anno.hg19_multianno.csv',
-    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8T-2_with_info.csv',
-    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8_with_info.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8/XK-8W.mt2.merged.anno.hg19_multianno.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8/XK-8T-2_with_info.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8/XK-8-2_with_info.csv',
     #                  output_file,
     #                  pp=arg_list)
     # filter_pipelines2('/home/liaoth/project/170602_XK/server_result/germline/XK-8W_S18.merged.anno.hg19_multianno.csv',
@@ -243,9 +243,9 @@ if __name__ == '__main__':
     #                  output_file,
     #                  pp=arg_list)
     filter_pipelines2('/home/liaoth/project/170602_XK/server_result/germline/XK-2W.merged.anno.hg19_multianno.csv',
-                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2W.mt2.merged.anno.hg19_multianno.csv',
-                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2T_with_info.csv',
-                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2.mt2_with_infos.csv',
+                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2W.mt2.merged.anno.hg19_multianno.csv',
+                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2T-2_with_info.csv',
+                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2-2_with_info.csv',
                      output_file,
                      pp=arg_list)
 

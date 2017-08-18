@@ -128,7 +128,11 @@ def gene_filter(file_df,_in = []):
     indexs = file_df.index
     for _idx in list(indexs):
         if file_df.loc[_idx,'Gene.refGene']:
-            genes = file_df.loc[_idx,'Gene.refGene'].split(';')
+            try:
+                genes = file_df.loc[_idx,'Gene.refGene'].split(';')
+            except:
+                print 'get a genes values = '+str(file_df.loc[_idx,'Gene.refGene'])+" which can't be split"
+                continue
             for _g in genes:
                 if _g in _in and _idx not in gene_var_bucket:
                     gene_var_bucket.append(_idx)
