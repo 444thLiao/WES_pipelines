@@ -10,14 +10,17 @@ def snp_138_common_init(path = '/home/liaoth/data/humandb/snp138Common.name.txt'
     snp138_common = [_i.replace('\n', '') for _i in snp138_common]
     return snp138_common
 
-def ClearSeq_pos_init(path = '/home/liaoth/project/170123_NY/ClearSeq.bed'):
+def ClearSeq_pos_init(path = '/home/liaoth/project/170602_XK/server_result/result/archived_v1/0717_151_genes/coverage_info/151 genes panel_0717_mail.txt'):
     '''
 
     :param path: ClearSeq 151 gene info file
     :return: pandas DataFrame with Start,End info. Using Utils.construct_pos_list() to create pos dict.
     '''
-    gene_151 = df.from_csv(path, sep='\t', index_col=False)
-    return gene_151
+    with open(path) as f1:
+        a = f1.read().split('\n')
+    a.remove('')
+
+    return a
 
 def DNA_repair_init(path = '/home/liaoth/project/170801_XK/DNA_repair_db.xlsx'):
     data_info = pandas.read_excel(path)
@@ -32,7 +35,9 @@ sum_sig_genes = ['AKT1', 'AKT2', 'AKT3', 'ARID1A', 'ARID1B', 'ARID2', 'ASCL4', '
                  'NOTCH2', 'NRAS', 'PIK3CA', 'PTEN', 'RASA1', 'RB1', 'RBM10', 'RIT1', 'SETD2', 'SLIT2', 'SMAD4',
                  'SMARCA4', 'SOX2-OT', 'STK11', 'TP53', 'TP63', 'TSC1', 'TSC2', 'U2AF1','ALK','DDR2']
 immune_genes = ['CD274','PDCD1LG2','LGALS9']
-
+# dna_repair = DNA_repair_init(path='/home/liaoth/project_formal/170801_XK/DNA_repair_db.xlsx')
+# clear_seq = ClearSeq_pos_init(path = '/home/liaoth/project_formal/151 genes panel_0717_mail.txt')
+# all_genes = sum_sig_genes+immune_genes+dna_repair+clear_seq
 
 ##Lung Cancer relative important genes.
 

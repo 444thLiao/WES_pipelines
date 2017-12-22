@@ -42,7 +42,7 @@ Maybe you also need to `python ~/tools/Whole_pipelines/main.py -A germline -arg 
 After `recal_reads.bam` is generated. You need to run `python ~/tools/Whole_pipelines/special_fun/cal_Cov_script_version.py -b {bam} -B  /home/liaoth/project_formal/170602_XK/WES_sureselect_v6.bed -r /home/liaoth/data/hg19/ucsc.hg19.fasta`. This is basically cal depth in all needed pos in WES project.
 	**You also can use this shell script**
 ```shell
-for path in `ls /home/liaoth/project_formal/170801_XK/output/XK_result/*/*.recal_reads.bam`; do python ~/tools/Whole_pipelines/special_fun/cal_Cov_script_version.py -b {bam} -B {bed} -r {ref} & done
+for path in `ls /home/home/liaoth/project/Whole_pipelines/special_fun/add_per_info_into_csv.py/liaoth/project_formal/170801_XK/output/XK_result/*/*.recal_reads.bam`; do python ~/tools/Whole_pipelines/special_fun/cal_Cov_script_version.py -b {bam} -B {bed} -r {ref} & done
 for path in `ls /home/liaoth/project_formal/170801_XK/output/XK_result/*/*_sorted.bam`; do python ~/tools/Whole_pipelines/special_fun/cal_Cov_script_version.py -b {bam} -B {bed} -r {ref} & done
 ```
 **After above process , you can get '.info' file.**
@@ -88,9 +88,14 @@ Function have been written in [Script](/home/liaoth/project/Whole_pipelines/aft_
 #####3.5 more Annotate snp with pcgr.
 a. Extract snp info from csv as bed file.[function script](/home/liaoth/project/Whole_pipelines/aft_pipelines_analysis/csv2bed.py)
 b. use bed to extract specific SNP from vcf.  [function script](/home/liaoth/project/Whole_pipelines/aft_pipelines_analysis/extracted_pos_from_vcf.py)
-> You need to notice that, we have two csv file. So that is not easy to merge them together and extract specific pos. So we write this script to help guys do this jobs.
+> You need to notice that, we have two csv file. So that is not easy to merge them together and extract specific pos. So I write this script to help guys do this jobs.
+
 c. use pcgr to annote.
-d. pack up infomation from pcgr.
+d. pack up infomation from pcgr. [function script](/home/liaoth/project/Whole_pipelines/aft_pipelines_analysis/simpy_summary.py). You can using this script to simply extract and format a few of SNV file which include **Biomarks CancerHotspot**
+#####3.6 Summary the stats from result file.
+It is easy to use, you just need to pass a list of csv path to this function. And then, you write this output to a file. Normally I use \t as a separtor.
+**[script](/home/liaoth/project/Whole_pipelines/aft_pipelines_analysis/simpy_summary.py)**
+
 
 
 

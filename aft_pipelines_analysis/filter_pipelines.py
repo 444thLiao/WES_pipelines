@@ -231,9 +231,9 @@ if __name__ == '__main__':
     arg_list = [int(_i) for _i in args.pipelines.split(',')]
     output_file = args.output
     # filter_pipelines2('/home/liaoth/project/170602_XK/server_result/germline/XK-8W_S18.merged.anno.hg19_multianno.csv',
-    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8/XK-8W.mt2.merged.anno.hg19_multianno.csv',
-    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8/XK-8T-2_with_info.csv',
-    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8/XK-8-2_with_info.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8-2/XK-8W.mt2.merged.anno.hg19_multianno.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8-2/XK-8T-2_with_info.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-8-2/XK-8-2_with_info.csv',
     #                  output_file,
     #                  pp=arg_list)
     # filter_pipelines2('/home/liaoth/project/170602_XK/server_result/germline/XK-8W_S18.merged.anno.hg19_multianno.csv',
@@ -242,12 +242,12 @@ if __name__ == '__main__':
     #                  '/home/liaoth/project/170602_XK/server_result/result/XK-8/FOR_COMPARE/170123/XK-8.mt2_with_infos.csv',
     #                  output_file,
     #                  pp=arg_list)
-    filter_pipelines2('/home/liaoth/project/170602_XK/server_result/germline/XK-2W.merged.anno.hg19_multianno.csv',
-                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2W.mt2.merged.anno.hg19_multianno.csv',
-                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2T-2_with_info.csv',
-                     '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2-2_with_info.csv',
-                     output_file,
-                     pp=arg_list)
+    # filter_pipelines2('/home/liaoth/project/170602_XK/server_result/germline/XK-2W.merged.anno.hg19_multianno.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2W.mt2.merged.anno.hg19_multianno.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2T-2_with_info.csv',
+    #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-2/XK-2-2_with_info.csv',
+    #                  output_file,
+    #                  pp=arg_list)
 
     # filter_pipelines2('/home/liaoth/project/170602_XK/server_result/germline/XK-2W.merged.anno.hg19_multianno.csv',
     #                  '/home/liaoth/project/170602_XK/server_result/somatic/XK-2W.mt2.merged.anno.hg19_multianno.csv',
@@ -255,3 +255,9 @@ if __name__ == '__main__':
     #                  '/home/liaoth/project/170602_XK/server_result/result/XK-2/FOR_COMPARE/XK-2.mt2_with_infos.csv',
     #                  output_file,
     #                  pp=arg_list)
+    filter_pipelines2('/home/liaoth/project/170801_XK/result/germline/XK-27W.merged.anno.csv.hg19_multianno.csv',
+                     '/home/liaoth/project/170801_XK/result/somatic/XK-27W.mt2.merged.anno.hg19_multianno.csv',
+                     '/home/liaoth/project/170801_XK/result/somatic/XK-27T_with_info.csv',
+                     '/home/liaoth/project/170801_XK/result/somatic/XK-27_with_info.csv',
+                     output_file,
+                     pp=arg_list)

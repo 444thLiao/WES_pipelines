@@ -1,4 +1,4 @@
-import argparse, sys,os,glob
+import argparse, sys,os,glob,re
 from luigi.cmdline import luigi_run
 from somatic_filter_script import pair_filter,single_filter
 import parse_PCR2bed
@@ -8,10 +8,10 @@ parser_2 = argparse.ArgumentParser()
 parser_2.add_argument('-set', '--setting', dest='setting_path', type=str,
                     help="setting path")
 parser_2.add_argument('-A', '--analyze', dest='analyze_way', type=str,
-                    help="the way you choose to analyze data.[somatic,germline]")
+                    help="the way you choose to analyze data.[somatic,germline,germline_gemini,somatic_gemini]")
 parser_2.add_argument('-cal', '--Cal_cov', dest='cal_cov_info', type=str, help="cal cov info as your setting file.")
 parser_2.add_argument('-arg', '--arguments', dest='arguments_space', type=str,
-                    help="place you need to type your sample name.")
+                    help="place you need to type your sample name.(if you want to use lots of in your dir,please type in 'auto_detect'.)")
 parser_2.add_argument('-parse', '--parsePCR', dest='PCR_PATH', type=str, help="Enter blastn result path.")
 parser_2.add_argument('-fix', dest='fix_format', type=str, help="formatted for csv result file.")
 parser_2.add_argument('-SBF', '--Somatic_combined_file', dest='SBF', type=bool,
@@ -20,7 +20,6 @@ parser_2.add_argument('-SSF', '--Somatic_single_file', dest='SSF', type=bool,
                     help="Turn on/off the single analysis after SomaticPipelines.")
 
 args = parser_2.parse_args()
-
 
 setting_path = args.setting_path
 SBF = args.SBF
@@ -107,7 +106,14 @@ if __name__ == '__main__':
 
     if arguments_space and analyze_way and GO_ON:
         reload(sys)
-        parse_args = arguments_space.split(',')
+        if arguments_space == 'auto_detect':
+            parse_args = []
+            for each in glob.glob(base_inpath+'\*'):
+                each = os.path.basename(each)
+                if re.findall(PE1_fmt.format(input='(.*)'),each):
+                    parse_args.append(re.findall(PE1_fmt.format(input='(.*)'),each)[0])
+        else:
+            parse_args = arguments_space.split(',')
         if '.fastq.gz' in parse_args[0]:
             parse_args = [i.rpartition('.fastq.gz')[0] for i in parse_args]
         parse_args = ','.join(parse_args)
@@ -138,7 +144,7 @@ if __name__ == '__main__':
                 print 'Exit now.'
                 GO_ON=False
 
-        elif analyze_way == 'analyze_gemini':
+        elif analyze_way == 'germline_gemini':
             RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(arguments_space))
             if RUN_COMMAND.upper() == 'Y':
                 cmd_str = "--module GermlinePipelines_to_gemini workflow --x {args} --local-scheduler --workers {worker}".format(args=parse_args, worker=str(worker))
