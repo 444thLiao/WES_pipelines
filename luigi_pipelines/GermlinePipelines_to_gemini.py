@@ -107,7 +107,6 @@ class sorted_bam(luigi.Task):
         os.system("samtools sort -m 100G -f -@ 30 %s %s" % (self.input()[0].path, self.output().path))
         os.system('samtools index %s' % self.output().path)
 
-
 #########2
 class MarkDuplicate(luigi.Task):
     sampleID = luigi.Parameter()
@@ -116,54 +115,57 @@ class MarkDuplicate(luigi.Task):
         return [sorted_bam(sampleID=self.sampleID)]
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('_sorted.bam','.dedup.bam'))
+        return luigi.LocalTarget(self.input()[0].path.replace('_sorted.bam', '.dedup.bam'))
 
     def run(self):
         if PCR_ON:
-            pass
+            cmdline = "touch %s" % self.output().path
         else:
-            os.system(
-                "java -Xmx2g -jar ~/tools/picard-tools-2.5.0/picard.jar MarkDuplicates INPUT=%s OUTPUT=%s METRICS_FILE=%s/dedup_metrics.txt CREATE_INDEX=true REMOVE_DUPLICATES=true AS=true" % (
-                    self.input()[0].path, self.output().path, self.output().path.rpartition('/')[0]))
-
+            cmdline = "java -Xmx2g -jar ~/tools/picard-tools-2.5.0/picard.jar MarkDuplicates INPUT=%s OUTPUT=%s METRICS_FILE=%s/dedup_metrics.txt CREATE_INDEX=true REMOVE_DUPLICATES=true AS=true" % (
+            self.input()[0].path, self.output().path, self.output().path.rpartition('/')[0])
+        os.system(cmdline)
 
 #########3
 class RealignerTargetCreator(luigi.Task):
     sampleID = luigi.Parameter()
 
     def requires(self):
-        return [MarkDuplicate(sampleID=self.sampleID),sorted_bam(sampleID=self.sampleID)]
+        return [MarkDuplicate(sampleID=self.sampleID), sorted_bam(sampleID=self.sampleID)]
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam','.realign.intervals'))
+        return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam', '.realign.intervals'))
 
     def run(self):
         if PCR_ON:
-            os.system(
-            "java -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T RealignerTargetCreator -nt 20 -R %s -I %s --known %s -o %s" % (
-                REF_file_path, self.input()[0].path, known_gold_cvf, self.output().path))
-        else:
-            os.system(
-            "java -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T RealignerTargetCreator -nt 20 -R %s -I %s --known %s -o %s" % (
-                REF_file_path, self.input()[1].path, known_gold_cvf, self.output().path))
+            cmdline = "java -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T RealignerTargetCreator -nt 20 -R %s -I %s --known %s -o %s" % (
+                REF_file_path, self.input()[1].path, known_gold_cvf, self.output().path)
 
+        else:
+            cmdline = "java -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T RealignerTargetCreator -nt 20 -R %s -I %s --known %s -o %s" % (
+                REF_file_path, self.input()[0].path, known_gold_cvf, self.output().path)
+        os.system(cmdline)
 
 #########4
 class IndelRealigner(luigi.Task):
     sampleID = luigi.Parameter()
 
     def requires(self):
-        return [MarkDuplicate(sampleID=self.sampleID), RealignerTargetCreator(sampleID=self.sampleID)]
+        return [MarkDuplicate(sampleID=self.sampleID), RealignerTargetCreator(sampleID=self.sampleID),
+                sorted_bam(sampleID=self.sampleID)]
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam','.realign.bam'))
+        return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam', '.realign.bam'))
 
     def run(self):
-        os.system(
-            "java -Xmx5g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T IndelRealigner -R %s -I %s -targetIntervals %s -o %s" % (
-                REF_file_path, self.input()[0].path, self.input()[1].path, self.output().path))
-        os.system('samtools index %s' % self.output().path)
-
+        if PCR_ON:
+            cmdline = "java -Xmx5g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T IndelRealigner -R %s -I %s -targetIntervals %s -o %s" % (
+                REF_file_path, self.input()[2].path, self.input()[1].path, self.output().path)
+        else:
+            cmdline = "java -Xmx5g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T IndelRealigner -R %s -I %s -targetIntervals %s -o %s" % (
+                REF_file_path, self.input()[0].path, self.input()[1].path, self.output().path)
+        os.system(cmdline)
+        cmdline = 'samtools index %s' % self.output().path
+        os.system(cmdline)
 
 #########5
 class BaseRecalibrator(luigi.Task):

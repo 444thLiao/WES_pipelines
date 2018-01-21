@@ -108,54 +108,75 @@ if __name__ == '__main__':
         reload(sys)
         if arguments_space == 'auto_detect':
             parse_args = []
-            for each in glob.glob(base_inpath+'\*'):
+            for each in glob.glob(base_inpath+'/*'):
                 each = os.path.basename(each)
                 if re.findall(PE1_fmt.format(input='(.*)'),each):
                     parse_args.append(re.findall(PE1_fmt.format(input='(.*)'),each)[0])
         else:
             parse_args = arguments_space.split(',')
+        # if slicing_interval:
+        #     total_files = len(parse_args)
+        #     if slicing_interval == 'type_in':
+        #         slicing_interval = raw_input("""There are %s files, specify intervals of samples you want to run.\nPlease type '1,13' like input (1 for first files,total run 13 files.):""" % total_files)
+        #         minmun_samples,maxmun_samples = [int(_.strip(' '))  for _ in slicing_interval.split(',')]
+        #         minmun_samples -= 1
+        #     else:
+        #         low_i,high_i = [int(_) for _ in slicing_interval.split(',')]
+        #         minmun_samples = int(total_files * low_i/100.0)
+        #         maxmun_samples = int(total_files * high_i / 100.0)
+        #     parse_args = parse_args[minmun_samples:maxmun_samples]
+
         if '.fastq.gz' in parse_args[0]:
             parse_args = [i.rpartition('.fastq.gz')[0] for i in parse_args]
+
         parse_args = ','.join(parse_args)
+        # import pdb;pdb.set_trace()
         sys.path.append(os.path.abspath(sys.argv[0]))
+        sys.path.append(os.path.dirname(__file__)+'/luigi_pipelines/')
+
+        if bip:
+            scheduler_str = '--scheduler-host {bip}'.format(bip=bip)
+        else:
+            scheduler_str = '--local-scheduler'
         if analyze_way == 'somatic':
-            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(arguments_space))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
-                cmd_str = "--module SomaticPipelines workflow --x {args} --local-scheduler --workers {worker}".format(args=parse_args, worker=str(worker))
+                cmd_str = "--module SomaticPipelines workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
             else:
                 print 'Exit now.'
                 GO_ON=False
         elif analyze_way == 'germline':
-            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(arguments_space))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
-                cmd_str ='--module GermlinePipelines workflow --x {args} --local-scheduler --workers {worker}'.format(args=parse_args, worker=str(worker))
+
+                cmd_str ='--module GermlinePipelines workflow --x {args} {sch} --workers {worker}'.format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
             else:
                 print 'Exit now.'
                 GO_ON=False
 
         elif analyze_way == 'somatic_gemini':
-            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(arguments_space))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
-                cmd_str ="--module SomaticPipelines_to_gemini workflow --x {args} --local-scheduler --workers {worker}".format(args=parse_args, worker=str(worker))
+                cmd_str ="--module SomaticPipelines_to_gemini workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
             else:
                 print 'Exit now.'
                 GO_ON=False
 
         elif analyze_way == 'germline_gemini':
-            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(arguments_space))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
-                cmd_str = "--module GermlinePipelines_to_gemini workflow --x {args} --local-scheduler --workers {worker}".format(args=parse_args, worker=str(worker))
+                cmd_str = "--module GermlinePipelines_to_gemini workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
             else:
                 print 'Exit now.'
                 GO_ON=False
         elif analyze_way == 'test_multi':
-            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(arguments_space))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
-                cmd_str = "--module test_multi_SomaticPipelines workflow --x {args} --local-scheduler --workers {worker}".format(args=parse_args, worker=str(worker))
+                cmd_str = "--module test_multi_SomaticPipelines workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
             else:
                 print 'Exit now.'
@@ -167,10 +188,10 @@ if __name__ == '__main__':
         print 'Fatal error occur, please enter both -A and -arg.'
 
     if cal_cov_info and GO_ON:
-        print 'Using bed file : '+bed_file_path
+        print 'Using bed file : '+ bed_file_path
         print 'Using bam file : '+ output_fmt.format(path=cal_cov_info, SN=cal_sample_name)+'.recal_reads.bam'
         print 'Output file will be output at : ' + output_fmt.format(path=cal_cov_info, SN=cal_sample_name)+'_cov.info'
-        cal_sample_name(cal_cov_info,cal_sample_name,bed_file_path)
+        cal_fun(cal_cov_info,cal_sample_name,bed_file_path)
         print 'cal_cov_info Completed.'
     else:
         print "Maybe the file you want to cal doesn't exist."

@@ -21,6 +21,7 @@ vep_pro = '/home/liaoth/tools/ensembl-tools-release-87/scripts/variant_effect_pr
 bgzip_pro = '/usr/bin/bgzip'
 tabix_pro = '/usr/bin/tabix'
 gemini_pro = '/usr/local/bin/gemini'
+annovar_pro = '/home/liaoth/tools/annovar'
 #####Paired format.
 PE1_fmt = '{input}_R1_001'
 PE2_fmt = '{input}_R2_001'
@@ -69,13 +70,18 @@ somatic_pair_output_fmt2 = '{path}/{PN}_result/{PairN}_somatic/{PairN}'
 somatic_single_output_fmt2 = '{path}/{PN}_result/{SN}_somatic/{SN}'
 
 worker = 12
+annovar_thread = 20
+bip='172.20.114.242'
+max_memory= 10240
+# unit is kb. default is 10G
 
 ## DB files, Normaly don't need to change.
 REF_file_path = '/home/liaoth/data/hg19/ucsc.hg19.fasta'
 known_gold_cvf = '~/data/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf'
 db_snp = '~/data/hg19/dbsnp_138.hg19.vcf'
 cos_snp = '~/data/combinded_hg19_cosmic_v77.vcf'
-
+genome_version = 'hg19'
+db_names = 'refGene,phastConsElements46way,genomicSuperDups,esp6500siv2_all,1000g2014oct_all,exac03,snp138,ljb26_all,clinvar_20160302'
 ####For cal_fun
 cal_sample_name = ''
 ####For analysis after somatic pipelines.

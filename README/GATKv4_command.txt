@@ -1,0 +1,167 @@
+###############################################################################################
+### Target (Amplicon) sequencing of human exome, germline sample
+### @GPZ-bioinfo, 20180116
+###############################################################################################
+
+
+###############################################################################################
+### Step.1
+###############################################################################################
+### bwa mapping to hg19 reference genome (only chromosome chr13 use for fast test)
+### piping bwa samtools view and sort
+### to save intermediate results
+### option: -M
+### -M	mark shorter split hits as secondary (for Picard/GATK compatibility)
+### The BWA-MEM algorithm performs local alignment. It may produce multiple primary alignments for different part of a query sequence. This is a crucial feature for long sequences. However, some tools such as Picard’s markDuplicates does not work with split alignments. One may consider to use option -M to flag shorter split hits as secondary.
+### -k
+### Minimum seed length. Matches shorter than INT will be missed. The alignment speed is usually insensitive to this value unless it significantly deviates 20. [19]
+### -R read group information
+### samtools view -F 0x100 filter out secondary alignment
+### -b output binary bam format
+### -u Output uncompressed BAM, save time for compressing and decompressing
+### -S Ignored for compatibility with previous samtools versions
+###############################################################################################
+
+
+bwa mem -M -t 8 -k 19 -R '@RG\tID:1_S1\tSM:S1\tPL:illumina\tLB:lib1\tPU:L001' ~/data/hg19/ucsc.hg19.fasta ~/data2/BRCA_raw_data/1_S1_L001_R1_001.fastq.gz ~/data2/BRCA_raw_data/1_S1_L001_R2_001.fastq.gz | samtools view -F 0x100 -bSu - | samtools sort - -o 1_S1.bam
+
+### bam index
+samtools index 1_S1.bam
+
+
+###############################################################################################
+### Step.2
+###############################################################################################
+### remove duplicated reads
+### not suitable for amplicon data, PCR amplicon are duplicated for purpose
+###############################################################################################
+### CREATE_INDEX (Boolean)	Whether to create a BAM index when writing a coordinate-sorted BAM file. Default value: false.
+### REMOVE_DUPLICATES (Boolean)	If true do not write duplicates to the output file instead of writing them with appropriate flags set.
+### ASSUME_SORTED (Boolean)	If true, assume that the input file is coordinate sorted even if the header says otherwise. Deprecated, used ASSUME_SORT_ORDER=coordinate instead. Default value: false.
+###############################################################################################
+
+gatk MarkDuplicates --java-options '-Xmx4g' --INPUT 1_S1.bam --OUTPUT 1_S1.dedup.bam --METRICS_FILE dedup_metrics.txt --CREATE_INDEX true --REMOVE_DUPLICATES true -AS true
+
+
+###############################################################################################
+### Step.3
+###############################################################################################
+### calculate reads calibration table
+### --covariate
+### -cov One or more covariates to be used in the recalibration.
+### Can be specified multiple times
+### Note that the ReadGroup and QualityScore covariates are required and do not need to be specified.
+### Also, unless --no_standard_covs is specified, the Cycle and Context covariates are standard and are included by default.
+### Use the --list argument to see the available covariates.
+###############################################################################################
+
+gatk BaseRecalibrator --java-options '-Xmx4g' --reference ~/data/hg19/ucsc.hg19.fasta --input 1_S1.dedup.bam --known-sites ~/data/hg19/dbsnp_138.hg19.vcf --known-sites ~/data/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf --output 1_S1.recal_data.table
+
+###############################################################################################
+### Step.4
+###############################################################################################
+### apply the recalibration
+###############################################################################################
+
+gatk ApplyBQSR --java-options '-Xmx4g' --reference ~/data/hg19/ucsc.hg19.fasta --input 1_S1.dedup.bam --bqsr-recal-file 1_S1.recal_data.table --output 1_S1.recal_reads.bam
+
+### [NEW: add target bed for filtering]
+
+gatk ApplyBQSR --java-options '-Xmx4g' --reference ~/data/hg19/ucsc.hg19.fasta --input 1_S1.dedup.bam --bqsr-recal-file 1_S1.recal_data.table --output 1_S1.recal_reads.bam --intervals targets.bed
+
+### bam index
+samtools index 1_S1.recal_reads.bam
+
+
+###############################################################################################
+### Step.5
+###############################################################################################
+### call raw variants
+### DISCOVERY!!! of de novo variant using HaplotypeCaller
+###
+###############################################################################################
+
+gatk HaplotypeCaller --java-options '-Xmx4g' --native-pair-hmm-threads 20 --reference ~/data/hg19/ucsc.hg19.fasta --input 1_S1.recal_reads.bam --genotyping-mode DISCOVERY --dbsnp ~/data/hg19/dbsnp_138.hg19.vcf -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output 1_S1.raw_variants.vcf --intervals targets.bed
+
+
+
+gatk Mutect2 --java-options '-Xmx20g' --native-pair-hmm-threads 20 --reference /home/db_public/hg19/ucsc.hg19.fasta -I ~/project/180104_XK/output/XK_result/XK-32W/XK-32W.recal_reads.bam -normal XK-32W -I ~/project/180104_XK/output/XK_result/XK-32T/XK-32T.recal_reads.bam -tumor XK-32T --dbsnp /home/db_public/hg19/dbsnp_138.hg19.vcf --seconds-between-progress-updates 60 --all-site-pls -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output ~/project/180104_XK/output/gatk4_test/XK-32_paired.vcf -bamout ~/project/180104_XK/output/gatk4_test/XK-32 --intervals targets.bed
+
+--allSitePLs -R {REF} --cosmic {cosmic} --dbsnp {db_snp} --input_file {input_normal} -normal XK-32W --input_file {input_tumor} -tumor XK-32T -O {prefix}.vcf -bamout {prefix}.bam --log_to_file {prefix}.log
+
+gatk Mutect2 --java-options '-Xmx20g' --native-pair-hmm-threads 20 --reference {REF} -I {input_normal} -normal XK-32W -I {input_tumor} -tumor XK-32T --dbsnp {db_snp} --seconds-between-progress-updates 60 --all-site-pls -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output ~/project/180104_XK/output/gatk4_test/XK-32_paired.vcf -bamout ~/project/180104_XK/output/gatk4_test/XK-32 --intervals targets.bed
+
+
+
+###############################################################################################
+### Step.6
+###############################################################################################
+### raw snps
+### --selectTypeToInclude / -selectType
+### Select only a certain type of variants from the input file
+### This argument selects particular kinds of variants out of a list. If left empty, there is no type selection and all variant types are considered for other selection criteria. Valid types are INDEL, SNP, MIXED, MNP, SYMBOLIC, NO_VARIATION. Can be specified multiple times.
+###############################################################################################
+gatk SelectVariants --java-options '-Xmx4g' -R ~/data/hg19/ucsc.hg19.fasta -V 1_S1.raw_variants.vcf -select-type SNP -O 1_S1.raw_snps.vcf
+
+### [NEW: add target bed for filtering]
+### [??? What about other types???]
+
+gatk SelectVariants --java-options '-Xmx4g' -R ~/data/hg19/ucsc.hg19.fasta -V 1_S1.raw_variants.vcf -select-type SNP -O 1_S1.raw_snps.vcf -L targets.bed --interval_padding 25
+
+
+###############################################################################################
+### Step.7
+###############################################################################################
+### SNP callset hard filtering
+###
+### --filterExpression / -filter
+### One or more expression used with INFO fields to filter
+###  VariantFiltration accepts any number of JEXL expressions
+### (so you can have two named filters by using --filterName One --filterExpression 'X < 1' --filterName Two --filterExpression 'X > 2').
+### http://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
+###############################################################################################
+gatk VariantFiltration --java-options '-Xmx4g' -R ~/data/hg19/ucsc.hg19.fasta -V 1_S1.raw_snps.vcf --filter-expression 'QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0' --filter-name 'my_snp_filter' -O 1_S1.filter_snps.vcf -L targets.bed --interval_padding 25
+
+
+
+###############################################################################################
+### Step.8
+###############################################################################################
+### raw indels
+###############################################################################################
+gatk SelectVariants --java-options '-Xmx4g' -R ~/data/hg19/ucsc.hg19.fasta -V 1_S1.raw_variants.vcf -select-type INDEL -O 1_S1.raw_indels.vcf
+
+
+
+###############################################################################################
+### Step.9
+###############################################################################################
+### INDEL callset hard filtering
+### http://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
+###############################################################################################
+gatk VariantFiltration --java-options '-Xmx4g' -R ~/data/hg19/ucsc.hg19.fasta -V 1_S1.raw_indels.vcf --filter-expression 'QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0' --filter-name 'my_indel_filter' -O 1_S1.filter_indels.vcf
+
+
+###############################################################################################
+### Step.13
+###############################################################################################
+### Merge vcf files for annotation
+###############################################################################################
+gatk MergeVcfs --java-options '-Xmx4g'  -R ~/data/hg19/ucsc.hg19.fasta --INPUT 1_S1.filter_indels.vcf --INPUT 1_S1.filter_snps.vcf --OUTPUT 1_S1.merged.vcf -L targets.bed --interval_padding 25
+
+
+
+###############################################################################################
+### Step.14
+###############################################################################################
+### Annovar and other annotation to be completed
+###############################################################################################
+$ANNOVAR/convert2annovar.pl 1_S1.merged.vcf -format vcf4 > 1_S1.merged.av
+$ANNOVAR/table_annovar.pl 1_S1.merged.av $ANNOVAR_DB/  -buildver hg19
+            -protocol refGene,phastConsElements46way,genomicSuperDups,esp6500siv2_all,1000g2014oct_all,exac03,snp138,ljb26_all,clinvar_20160302
+            -operation g,r,r,f,f,f,f,f,f
+            -nastring .
+            --otherinfo
+            --csvout
+            --outfile 1_S1.merged.anno.csv
+            --argument '-exonicsplicing -splicing 25',,,,,,,,

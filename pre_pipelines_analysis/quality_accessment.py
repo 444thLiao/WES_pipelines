@@ -1,14 +1,15 @@
-
 import sys,os,glob,re
+import pandas as pd
+
 def cal_fastq_reads(fq_path):
     a = os.popen("zgrep '^+$' -c %s" % fq_path)
     return int(a.read())
 
 def cal_fastq_bp(fq_path):
-    a = os.popen("zgrep -E '^[ACTGN]+$' $path | wc")
+    a = os.popen("zgrep -E '^[ACTGN]+$' %s | wc" % fq_path)
     b = a.read()
     b = b.split(' ')
-    return int(b[4])-int(b[1])
+    return int(b[2].replace('\n',''))-int(b[1])
 
 def parse_samtools_info(long_str,need ):
     info_list = long_str.split('\n')
@@ -21,11 +22,25 @@ def parse_samtools_info(long_str,need ):
             raise IOError,parsed
     return None
 
-
-
+def write_bp(_path,colname):
+    for r1 in _path:
+        if 'R1' not in r1:
+            continue
+        else:
+            if r1.count('R1') != 1:
+                import pdb;pdb.set_trace()
+            r2 = r1.replace('R1','R2')
+            r1_bp = cal_fastq_bp(r1)
+            r2_bp = cal_fastq_bp(r2)
+            sample_n = [_ for _ in sample_names if _ in r1]
+            if not sample_n:
+                import pdb;pdb.set_trace()
+            else:
+                sample_n = sample_n[0]
+            result_df.loc[sample_n,colname] = r1_bp + r2_bp
 
 if __name__ == '__main__':
-    setting_file = sys.argv()[-1]
+    setting_file = sys.argv[-1]
     dir_path = os.path.dirname(setting_file)
 
     sys.path.insert(0,dir_path)
@@ -33,9 +48,64 @@ if __name__ == '__main__':
 
     field_names = ['Sample ID','raw data/bp','clean data/bp','genome mapping','target mapping',
                    'remove dup target mapping','dup','target_length/bp','avg_depth','>1X','>5X','>10X','>20X']
+    if not filter_str:
+        filter_str = '-999'
     sample_names = [os.path.basename(_i) for _i in glob.glob(os.path.join(base_outpath,'{PN}_result/{PN}*[{n}{t}]'.format(PN=PROJECT_NAME,n=NORMAL_SIG,t=TUMOR_SIG)))]
-    raw_path = [[_k for _k in glob.glob(os.path.join(base_inpath, '*%s*R1*.gz') % _i) if filter_str not in _k ][0] for _i in sample_names]
+    sample_names.remove('XK-25T')
+    raw_path = [[_k for _k in glob.glob(os.path.join(base_inpath, '*%s*R1*.gz' % i ) ) if filter_str not in _k ][0] for i in sample_names]
     trim_path = glob.glob(os.path.join(base_outpath, '%s_result/trim_result/*.clean.fq.gz' % PROJECT_NAME))
+    result_df = pd.DataFrame(index=sample_names,columns=field_names[1:])
+    write_bp(trim_path,'clean data/bp')
+    raw_path += [_.replace('R1','R2') for _ in raw_path]
+    # write_bp(raw_path, 'raw data/bp')
 
     bam_path = glob.glob(os.path.join(base_outpath, '%s_result/*/*_sorted.bam' % PROJECT_NAME))
+    for each in bam_path:
+        tmp = os.popen('/usr/bin/samtools flagstat %s' % each)
+        # a = tmp.read()
+        # maprate = parse_samtools_info(a,'mapped')
+        # result_df.loc[os.path.basename(each).split('_sorted')[0], 'genome mapping'] = float(maprate[0])
+
+        if os.path.isfile(each.replace('_sorted.bam','_sorted_cov.info')):
+            #tmp = pd.read_csv(each.replace('_sorted.bam','_sorted_cov.info'),sep='\t',low_memory=False,engine=)
+            tmp = open(each.replace('_sorted.bam','_sorted_cov.info')).xreadlines()
+            bases = ['A','T','C','G']
+            each_pos = []
+            count = 0
+            for line in tmp:
+                if count ==0:
+                    idx = [line.split('\t').index(_) for _ in bases]
+                else:
+                    each_pos.append(sum([int(line.split('\t')[_]) for _ in idx]))
+                count += 1
+            total_base_count = sum(each_pos)
+            result_df.loc[os.path.basename(each).split('_sorted')[0], 'target mapping'] = total_base_count
+
+    bam_path = glob.glob(os.path.join(base_outpath, '%s_result/*/*.dedup.bam' % PROJECT_NAME))
+    for each in bam_path:
+        if os.path.isfile(each.replace('.dedup.bam','_cov.info')):
+            tmp = open(each.replace('.dedup.bam','_cov.info')).xreadlines()
+            bases = ['A','T','C','G']
+            each_pos = []
+            count = 0
+            for line in tmp:
+                if count ==0:
+                    idx = [line.split('\t').index(_) for _ in bases]
+                else:
+                    each_pos.append(sum([int(line.split('\t')[_]) for _ in idx]))
+                count += 1
+            total_base_count = sum(each_pos)
+            avg_depth = total_base_count/60700153.0
+            gt1 = len([_ for _ in each_pos if _ > 1])
+            gt5 = len([_ for _ in each_pos if _ > 5])
+            gt10 = len([_ for _ in each_pos if _ > 10])
+            gt20 = len([_ for _ in each_pos if _ > 20])
+            idx_name = os.path.basename(each).split('.dedup')[0]
+            result_df.loc[idx_name, 'remove dup target mapping'] = total_base_count
+            result_df.loc[idx_name, 'avg_depth'] = avg_depth
+            result_df.loc[idx_name, '>1X'] = gt1
+            result_df.loc[idx_name, '>5X'] = gt5
+            result_df.loc[idx_name, '>10X'] = gt10
+            result_df.loc[idx_name, '>20X'] = gt20
+
 

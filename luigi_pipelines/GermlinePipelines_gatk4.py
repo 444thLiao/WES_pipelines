@@ -159,71 +159,22 @@ class MarkDuplicate(luigi.Task):
         if PCR_ON:
             cmdline = "touch %s" % self.output().path
         else:
-            cmdline = "java -Xmx2g -jar ~/tools/picard-tools-2.5.0/picard.jar MarkDuplicates INPUT=%s OUTPUT=%s METRICS_FILE=%s/dedup_metrics.txt CREATE_INDEX=true REMOVE_DUPLICATES=true AS=true" % (
-                self.input()[0].path, self.output().path, self.output().path.rpartition('/')[0])
+            cmdline = "gatk MarkDuplicates --java-options '-Xmx4g' --INPUT %s --OUTPUT %s --METRICS_FILE %s/dedup_metrics.txt --CREATE_INDEX true --REMOVE_DUPLICATES true -AS true" % (self.input()[0].path, self.output().path, self.output().path.rpartition('/')[0])
         os.system(cmdline)
         record_cmdline(cmdline)
-
-
-#########3
-class RealignerTargetCreator(luigi.Task):
-    sampleID = luigi.Parameter()
-
-    def requires(self):
-        return [MarkDuplicate(sampleID=self.sampleID), sorted_bam(sampleID=self.sampleID)]
-
-    def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam', '.realign.intervals'))
-
-    def run(self):
-        if PCR_ON:
-            cmdline = "java -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T RealignerTargetCreator -nt 20 -R %s -I %s --known %s -o %s" % (
-                REF_file_path, self.input()[1].path, known_gold_cvf, self.output().path)
-
-        else:
-            cmdline = "java -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T RealignerTargetCreator -nt 20 -R %s -I %s --known %s -o %s" % (
-                REF_file_path, self.input()[0].path, known_gold_cvf, self.output().path)
-        os.system(cmdline)
-        record_cmdline(cmdline)
-
-
-#########4
-class IndelRealigner(luigi.Task):
-    sampleID = luigi.Parameter()
-
-    def requires(self):
-        return [MarkDuplicate(sampleID=self.sampleID), RealignerTargetCreator(sampleID=self.sampleID),
-                sorted_bam(sampleID=self.sampleID)]
-
-    def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam', '.realign.bam'))
-
-    def run(self):
-        if PCR_ON:
-            cmdline = "java -Xmx5g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T IndelRealigner -R %s -I %s -targetIntervals %s -o %s" % (
-                REF_file_path, self.input()[2].path, self.input()[1].path, self.output().path)
-        else:
-            cmdline = "java -Xmx5g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T IndelRealigner -R %s -I %s -targetIntervals %s -o %s" % (
-                REF_file_path, self.input()[0].path, self.input()[1].path, self.output().path)
-        os.system(cmdline)
-        record_cmdline(cmdline)
-        cmdline = 'samtools index %s' % self.output().path
-        os.system(cmdline)
-        record_cmdline(cmdline)
-
 
 #########5
 class BaseRecalibrator(luigi.Task):
     sampleID = luigi.Parameter()
 
     def requires(self):
-        return [IndelRealigner(sampleID=self.sampleID)]
+        return [MarkDuplicate(sampleID=self.sampleID)]
 
     def output(self):
         return luigi.LocalTarget(self.input()[0].path.replace('.realign.bam', '.recal_data.table'))
 
     def run(self):
-        cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T BaseRecalibrator -nct 25 -R %s -I %s -knownSites %s -knownSites %s -o %s" % (
+        cmdline = "gatk BaseRecalibrator --java-options '-Xmx4g' --reference %s --input %s --known-sites %s --known-sites %s --output %s" % (
             REF_file_path, self.input()[0].path, db_snp, known_gold_cvf, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
@@ -234,13 +185,13 @@ class PrintReads(luigi.Task):
     sampleID = luigi.Parameter()
 
     def requires(self):
-        return [IndelRealigner(sampleID=self.sampleID), BaseRecalibrator(sampleID=self.sampleID)]
+        return [MarkDuplicate(sampleID=self.sampleID), BaseRecalibrator(sampleID=self.sampleID)]
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.realign.bam', '.recal_reads.bam'))
+        return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam', '.recal_reads.bam'))
 
     def run(self):
-        cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T PrintReads -R %s -I %s -BQSR %s -o %s" % (
+        cmdline = "gatk ApplyBQSR --java-options '-Xmx4g' --reference %s --input %s --bqsr-recal-file %s --output %s" % (
             REF_file_path, self.input()[0].path, self.input()[1].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
@@ -262,13 +213,11 @@ class HaplotypeCaller(luigi.Task):
     def run(self):
         if bed_file_path != '':
 
-            cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T HaplotypeCaller -nct 30 -R %s -I %s -L %s --genotyping_mode DISCOVERY --dbsnp %s -stand_call_conf 10 -stand_emit_conf 5 -A AlleleBalance -A Coverage -A FisherStrand -o %s" % (
-                REF_file_path, self.input()[0].path, bed_file_path, db_snp, self.output().path)
+            cmdline = "gatk HaplotypeCaller --java-options '-Xmx4g' --native-pair-hmm-threads 30 --reference {ref} --input {input} --genotyping-mode DISCOVERY --dbsnp {dbsnp} -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {output} --intervals {tar_bed}".format(ref=REF_file_path,input=self.input()[0].path,dbsnp=db_snp,output=self.output().path,tar_bed=bed_file_path)
             os.system(cmdline)
             record_cmdline(cmdline)
         else:
-            cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T HaplotypeCaller -nct 30 -R %s -I %s --genotyping_mode DISCOVERY --dbsnp %s -stand_call_conf 10 -stand_emit_conf 5 -A AlleleBalance -A Coverage -A FisherStrand -o %s" % (
-                REF_file_path, self.input()[0].path, db_snp, self.output().path)
+            cmdline = "gatk HaplotypeCaller --java-options '-Xmx4g' --native-pair-hmm-threads 30 --reference {ref} --input {input} --genotyping-mode DISCOVERY --dbsnp {dbsnp} -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {output}".format(ref=REF_file_path,input=self.input()[0].path,dbsnp=db_snp,output=self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -284,7 +233,7 @@ class SelectVariants_a(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.raw_variants.vcf', '.raw_snps.vcf'))
 
     def run(self):
-        cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T SelectVariants -R %s -V %s -selectType SNP -o %s" % (
+        cmdline = "gatk SelectVariants --java-options '-Xmx4g' -R %s -V %s -select-type SNP -O %s" % (
             REF_file_path, self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
@@ -301,7 +250,7 @@ class VariantFiltration_a(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.raw_snps.vcf', '.filter_snps.vcf'))
 
     def run(self):
-        cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T VariantFiltration -R %s -V %s --filterExpression \"QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0\" --filterName \"my_snp_filter\" -o %s" % (
+        cmdline = "gatk VariantFiltration --java-options '-Xmx4g' -R %s -V %s --filter-expression 'QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0' --filter-name 'my_snp_filter' -O %s" % (
             REF_file_path, self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
@@ -318,7 +267,7 @@ class SelectVariants_b(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.raw_variants.vcf', '.raw_indels.vcf'))
 
     def run(self):
-        cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T SelectVariants -R %s -V %s -selectType INDEL -o %s" % (
+        cmdline = "gatk SelectVariants --java-options '-Xmx4g' -R %s -V %s -select-type INDEL -O %s" % (
             REF_file_path, self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
@@ -335,8 +284,7 @@ class VariantFiltration_b(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.raw_indels.vcf', '.filter_indels.vcf'))
 
     def run(self):
-        cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T VariantFiltration -R %s -V %s --filterExpression \"QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0\" --filterName \"my_indel_filter\" -o %s" % (
-            REF_file_path, self.input()[0].path, self.output().path)
+        cmdline = "gatk VariantFiltration --java-options '-Xmx4g' -R {ref} -V {input} --filter-expression 'QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0' --filter-name 'my_indel_filter' -O {output}".format(ref=REF_file_path,input=self.input()[0].path,output=self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -352,8 +300,10 @@ class CombineVariants(luigi.Task):
         return luigi.LocalTarget(self.input()[1].path.replace('.filter_indels.vcf', '.merged.vcf'))
 
     def run(self):
-        cmdline = "java -Xmx4g -jar ~/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T CombineVariants -R %s --variant:indel %s --variant:snp %s --interval_padding 25 --out %s --setKey set --genotypemergeoption UNSORTED" % (
-            REF_file_path, self.input()[0].path, self.input()[1].path, self.output().path)
+        cmdline = """gatk MergeVcfs --java-options "-Xmx4g"  -R {ref} --INPUT {input_indel} --INPUT {input_snps} --OUTPUT {output}""".format(ref=REF_file_path,
+                                                                                                                                             input_indel=self.input()[1].path,
+                                                                                                                                             input_snps=self.input()[0].path,
+                                                                                                                                             output=self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
