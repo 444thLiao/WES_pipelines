@@ -53,3 +53,5 @@ gemini annotate -f {vep_output_vcf_gz} \
 				-t text,text,text,float,float,float,float,float
 				-o list,list,list,mean,mean,mean,mean,mean \
 				{Output_db} >> {gemini_log} 2>&1
+
+

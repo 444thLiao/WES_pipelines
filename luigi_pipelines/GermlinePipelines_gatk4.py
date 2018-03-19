@@ -23,30 +23,36 @@ class QC_trimmomatic(luigi.Task):
     PE2 = luigi.Parameter(default=None)
 
     def output(self):
-        sample_name = pfn(self.PE1, 'sample_name')
         project_name = pfn(self.PE1, 'project_name')
+        output1 = PE1_fmt.format(input=pfn(self.PE1, 'sample_name'))
         return luigi.LocalTarget(
-            '{base}/{PN}_result/trim_result/{SN}_trimed.log'.format(base=base_outpath, PN=project_name, SN=sample_name))
+            '{base}/{PN}_result/trim_result/{output1}.clean.fq.gz'.format(base=base_outpath, PN=project_name,
+                                                                          output1=output1))
 
     def run(self):
-
+        sample_name = pfn(self.PE1, 'sample_name')
         project_name = pfn(self.PE1, 'project_name')
-
-        if os.path.isdir('{base}/{PN}_result/trim_result'.format(base=base_outpath, PN=project_name)) != True:
+        log_name = '{base}/{PN}_result/trim_result/{SN}_trimed.log'.format(base=base_outpath, PN=project_name,
+                                                                           SN=sample_name)
+        if not os.path.isdir('{base}/{PN}_result/trim_result'.format(base=base_outpath, PN=project_name)):
             os.makedirs('{base}/{PN}_result/trim_result'.format(base=base_outpath, PN=project_name))
 
         input1 = self.PE1
         input2 = self.PE2
-        if input2 != None:
-            cmdline = "java -jar ~/tools/Trimmomatic-0.36/trimmomatic-0.36.jar PE -threads 10 {base_in}/{input1}.fastq.gz {base_in}/{input2}.fastq.gz -trimlog {output} {base_out}/{input1}.clean.fq.gz {base_out}/{input1}.unpaired.fq.gz {base_out}/{input2}.clean.fq.gz {base_out}/{input2}.unpaired.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50".format(
-                input1=input1, input2=input2, base_in=base_inpath, base_out=self.output().path.rpartition('/')[0],
-                output=self.output().path)
+        output1 = PE1_fmt.format(input=pfn(self.PE1, 'sample_name'))
+        output2 = PE2_fmt.format(input=pfn(self.PE2, 'sample_name'))
+
+        if input2:
+            cmdline = "java -jar ~/tools/Trimmomatic-0.36/trimmomatic-0.36.jar PE -threads 20 {base_in}/{input1}.fastq.gz {base_in}/{input2}.fastq.gz -trimlog {output} {base_out}/{output1}.clean.fq.gz {base_out}/{output1}.unpaired.fq.gz {base_out}/{output2}.clean.fq.gz {base_out}/{output2}.unpaired.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50".format(
+                input1=input1, input2=input2, base_in=base_inpath, base_out=os.path.dirname(log_name),
+                output1=output1, output2=output2,
+                output=log_name)
             os.system(cmdline)
             record_cmdline(cmdline)
         else:
-            cmdline = "java -jar ~/tools/Trimmomatic-0.36/trimmomatic-0.36.jar SE -threads 10 {base_in}/{input1}.fastq.gz -trimlog {output} {base_out}/{input1}.clean.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36".format(
-                input1=input1, base_in=base_inpath, base_out=self.output().path.rpartition('/')[0],
-                output=self.output().path)
+            cmdline = "java -jar ~/tools/Trimmomatic-0.36/trimmomatic-0.36.jar SE -threads 20 {base_in}/{input1}.fastq.gz -trimlog {output} {base_out}/{input1}.clean.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36".format(
+                input1=input1, base_in=base_inpath, base_out=os.path.dirname(log_name),
+                output=log_name)
             os.system(cmdline)
             record_cmdline(cmdline)
 
@@ -63,8 +69,8 @@ class GenerateSam_pair(luigi.Task):
                 input_list = glob.glob(base_inpath + '/*' + self.sampleID + '*')
                 if filter_str:
                     input_list = [_i.replace(fq_suffix, '') for _i in input_list if filter_str not in _i]
-                input1 = [_i for _i in input_list if R1_INDICATOR in _i][0]
-                input2 = [_i for _i in input_list if R2_INDICATOR in _i][0]
+                input1 = [_i.replace(fq_suffix, '') for _i in input_list if R1_INDICATOR in _i][0]
+                input2 = [_i.replace(fq_suffix, '') for _i in input_list if R2_INDICATOR in _i][0]
             return QC_trimmomatic(PE1=os.path.basename(input1), PE2=os.path.basename(input2))
         else:
             if not self_adjust_fn:
@@ -73,7 +79,7 @@ class GenerateSam_pair(luigi.Task):
                 input_list = glob.glob(base_inpath + '/*' + self.sampleID + '*')
                 if filter_str:
                     input_list = [_i.replace(fq_suffix, '') for _i in input_list if filter_str not in _i]
-                input1 = [_i for _i in input_list if R1_INDICATOR in _i][0]
+                input1 = [_i.replace(fq_suffix, '') for _i in input_list if R1_INDICATOR in _i][0]
             return QC_trimmomatic(PE1=os.path.basename(input1))
 
     def output(self):
@@ -88,25 +94,19 @@ class GenerateSam_pair(luigi.Task):
         project_name = pfn(self.sampleID, 'project_name')
 
         if Pair_data:
-            input1 = '{base_in}/{pe1_fmt}.clean.fq.gz'.format(base_in=self.input().path.rpartition('/')[0],
-                                                              pe1_fmt=PE1_fmt.format(input=self.sampleID),
-                                                              input=self.sampleID)
-            input2 = '{base_in}/{pe2_fmt}.clean.fq.gz'.format(base_in=self.input().path.rpartition('/')[0],
-                                                              pe2_fmt=PE2_fmt.format(input=self.sampleID),
-                                                              input=self.sampleID)
-            if not os.path.isdir(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name)) == True:
+            input1 = self.input().path
+            input2 = self.input().path.replace(R1_INDICATOR, R2_INDICATOR)
+            if not os.path.isdir(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name)):
                 os.makedirs(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name))
-            cmdline = "bwa mem -M -t 20 -k 19 -R '@RG\\tID:{SN}\\tSM:{SN}\\tPL:illumina\\tLB:lib1\\tPU:L001' {REF} {i1} {i2}  > {o}".format(
+            cmdline = "bwa mem -M -t 20 -k 19 -R '@RG\\tID:{SN}\\tSM:{SN}\\tPL:illumina\\tLB:lib1\\tPU:L001' {REF} {i1} {i2} > {o}".format(
                 SN=sample_name, REF=REF_file_path, i1=input1, i2=input2, o=self.output().path)
             os.system(cmdline)
             record_cmdline(cmdline)
         else:
-            input1 = '{base_in}/{SE_fmt}.clean.fq.gz'.format(base_in=self.input().path.rpartition('/')[0],
-                                                             SE_fmt=SE_fmt.format(input=self.sampleID),
-                                                             input=self.sampleID)
-            if os.path.isdir(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name)) != True:
+            input1 = self.input().path
+            if not os.path.isdir(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name)):
                 os.makedirs(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name))
-            cmdline = "bwa mem -M -t 20 -k 19 -R '@RG\\tID:{SN}\\tSM:{SN}\\tPL:illumina\\tLB:lib1\\tPU:L001' {REF} {i1}  > {o}".format(
+            cmdline = "bwa mem -M -t 20 -k 19 -R '@RG\\tID:{SN}\\tSM:{SN}\\tPL:illumina\\tLB:lib1\\tPU:L001' {REF} {i1} > {o}".format(
                 SN=sample_name, REF=REF_file_path, i1=input1, o=self.output().path)
             os.system(cmdline)
             record_cmdline(cmdline)
@@ -122,7 +122,11 @@ class Convertbam(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.sam', '.bam'))
 
     def run(self):
-        cmdline = "samtools view -F 0x100 -bSu %s -o %s" % (self.input()[0].path, self.output().path)
+        cmdline = "%s view -@ 20 -F 0x100 -T %s -b %s -o %s" % (
+        samtools_pro, REF_file_path, self.input()[0].path, self.output().path)
+        os.system(cmdline)
+        record_cmdline(cmdline)
+        cmdline = "touch %s" % self.input()[0].path
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -137,10 +141,10 @@ class sorted_bam(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.bam', '_sorted.bam'))
 
     def run(self):
-        cmdline = "samtools sort -m 60G -f -@ 30 %s %s" % (self.input()[0].path, self.output().path)
+        cmdline = "%s sort -m 2G -@ 30 %s -o %s" % (samtools_pro, self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
-        cmdline = 'samtools index %s' % self.output().path
+        cmdline = '%s index -@ 30 %s' % (samtools_pro, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -159,9 +163,11 @@ class MarkDuplicate(luigi.Task):
         if PCR_ON:
             cmdline = "touch %s" % self.output().path
         else:
-            cmdline = "gatk MarkDuplicates --java-options '-Xmx4g' --INPUT %s --OUTPUT %s --METRICS_FILE %s/dedup_metrics.txt --CREATE_INDEX true --REMOVE_DUPLICATES true -AS true" % (self.input()[0].path, self.output().path, self.output().path.rpartition('/')[0])
+            cmdline = "%s MarkDuplicates --java-options '-Xmx30g' --INPUT %s --OUTPUT %s --METRICS_FILE %s/dedup_metrics.txt --CREATE_INDEX true --REMOVE_DUPLICATES true -AS true" % (
+                gatk_pro, self.input()[0].path, self.output().path, self.output().path.rpartition('/')[0])
         os.system(cmdline)
         record_cmdline(cmdline)
+
 
 #########5
 class BaseRecalibrator(luigi.Task):
@@ -171,11 +177,11 @@ class BaseRecalibrator(luigi.Task):
         return [MarkDuplicate(sampleID=self.sampleID)]
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.realign.bam', '.recal_data.table'))
+        return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam', '.recal_data.table'))
 
     def run(self):
-        cmdline = "gatk BaseRecalibrator --java-options '-Xmx4g' --reference %s --input %s --known-sites %s --known-sites %s --output %s" % (
-            REF_file_path, self.input()[0].path, db_snp, known_gold_cvf, self.output().path)
+        cmdline = "%s BaseRecalibrator --java-options '-Xmx30g' --reference %s --input %s --known-sites %s --known-sites %s --output %s" % (
+            gatk_pro, REF_file_path, self.input()[0].path, db_snp, known_gold_cvf, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -191,11 +197,11 @@ class PrintReads(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.dedup.bam', '.recal_reads.bam'))
 
     def run(self):
-        cmdline = "gatk ApplyBQSR --java-options '-Xmx4g' --reference %s --input %s --bqsr-recal-file %s --output %s" % (
-            REF_file_path, self.input()[0].path, self.input()[1].path, self.output().path)
+        cmdline = "%s ApplyBQSR --java-options '-Xmx30g' --reference %s --input %s --bqsr-recal-file %s --output %s" % (
+            gatk_pro, REF_file_path, self.input()[0].path, self.input()[1].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
-        cmdline = 'samtools index %s' % self.output().path
+        cmdline = '%s index -@ 30 %s' % (samtools_pro, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -213,11 +219,14 @@ class HaplotypeCaller(luigi.Task):
     def run(self):
         if bed_file_path != '':
 
-            cmdline = "gatk HaplotypeCaller --java-options '-Xmx4g' --native-pair-hmm-threads 30 --reference {ref} --input {input} --genotyping-mode DISCOVERY --dbsnp {dbsnp} -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {output} --intervals {tar_bed}".format(ref=REF_file_path,input=self.input()[0].path,dbsnp=db_snp,output=self.output().path,tar_bed=bed_file_path)
+            cmdline = "{gatk} HaplotypeCaller --java-options '-Xmx30g' --native-pair-hmm-threads 30 --reference {ref} --input {input} --genotyping-mode DISCOVERY --dbsnp {dbsnp} -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {output} --intervals {tar_bed}".format(
+                ref=REF_file_path, input=self.input()[0].path, dbsnp=db_snp, output=self.output().path,
+                tar_bed=bed_file_path, gatk=gatk_pro)
             os.system(cmdline)
             record_cmdline(cmdline)
         else:
-            cmdline = "gatk HaplotypeCaller --java-options '-Xmx4g' --native-pair-hmm-threads 30 --reference {ref} --input {input} --genotyping-mode DISCOVERY --dbsnp {dbsnp} -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {output}".format(ref=REF_file_path,input=self.input()[0].path,dbsnp=db_snp,output=self.output().path)
+            cmdline = "{gatk} HaplotypeCaller --java-options '-Xmx30g' --native-pair-hmm-threads 30 --reference {ref} --input {input} --genotyping-mode DISCOVERY --dbsnp {dbsnp} -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {output}".format(
+                ref=REF_file_path, input=self.input()[0].path, dbsnp=db_snp, output=self.output().path, gatk=gatk_pro)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -233,8 +242,8 @@ class SelectVariants_a(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.raw_variants.vcf', '.raw_snps.vcf'))
 
     def run(self):
-        cmdline = "gatk SelectVariants --java-options '-Xmx4g' -R %s -V %s -select-type SNP -O %s" % (
-            REF_file_path, self.input()[0].path, self.output().path)
+        cmdline = "%s SelectVariants --java-options '-Xmx4g' -R %s -V %s -select-type SNP -O %s" % (
+            gatk_pro, REF_file_path, self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -250,8 +259,9 @@ class VariantFiltration_a(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.raw_snps.vcf', '.filter_snps.vcf'))
 
     def run(self):
-        cmdline = "gatk VariantFiltration --java-options '-Xmx4g' -R %s -V %s --filter-expression 'QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0' --filter-name 'my_snp_filter' -O %s" % (
-            REF_file_path, self.input()[0].path, self.output().path)
+        cmdline = "%s VariantFiltration --java-options '-Xmx4g' -R %s -V %s --filter-expression 'QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0' --filter-name 'my_snp_filter' -O %s" % (
+        gatk_pro,
+        REF_file_path, self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -267,7 +277,8 @@ class SelectVariants_b(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.raw_variants.vcf', '.raw_indels.vcf'))
 
     def run(self):
-        cmdline = "gatk SelectVariants --java-options '-Xmx4g' -R %s -V %s -select-type INDEL -O %s" % (
+        cmdline = "%s SelectVariants --java-options '-Xmx4g' -R %s -V %s -select-type INDEL -O %s" % (
+            gatk_pro,
             REF_file_path, self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
@@ -284,7 +295,9 @@ class VariantFiltration_b(luigi.Task):
         return luigi.LocalTarget(self.input()[0].path.replace('.raw_indels.vcf', '.filter_indels.vcf'))
 
     def run(self):
-        cmdline = "gatk VariantFiltration --java-options '-Xmx4g' -R {ref} -V {input} --filter-expression 'QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0' --filter-name 'my_indel_filter' -O {output}".format(ref=REF_file_path,input=self.input()[0].path,output=self.output().path)
+        cmdline = "{gatk} VariantFiltration --java-options '-Xmx4g' -R {ref} -V {input} --filter-expression 'QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0' --filter-name 'my_indel_filter' -O {output}".format(
+            gatk=gatk_pro,
+            ref=REF_file_path, input=self.input()[0].path, output=self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -300,10 +313,12 @@ class CombineVariants(luigi.Task):
         return luigi.LocalTarget(self.input()[1].path.replace('.filter_indels.vcf', '.merged.vcf'))
 
     def run(self):
-        cmdline = """gatk MergeVcfs --java-options "-Xmx4g"  -R {ref} --INPUT {input_indel} --INPUT {input_snps} --OUTPUT {output}""".format(ref=REF_file_path,
-                                                                                                                                             input_indel=self.input()[1].path,
-                                                                                                                                             input_snps=self.input()[0].path,
-                                                                                                                                             output=self.output().path)
+        cmdline = """{gatk} MergeVcfs --java-options "-Xmx4g"  -R {ref} --INPUT {input_indel} --INPUT {input_snps} --OUTPUT {output}""".format(
+            gatk=gatk_pro,
+            ref=REF_file_path,
+            input_indel=self.input()[1].path,
+            input_snps=self.input()[0].path,
+            output=self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
 
@@ -350,7 +365,11 @@ class workflow(luigi.Task):
     def requires(self):
         samples_IDs = str(self.x).split(',')
         for i in samples_IDs:
-            yield Annovar2(sampleID=i)
+            if NORMAL_SIG:
+                if pfn(i, 'mt2_for') == NORMAL_SIG:
+                    yield Annovar2(sampleID=i)
+            else:
+                yield Annovar2(sampleID=i)
 
 
 if __name__ == '__main__':

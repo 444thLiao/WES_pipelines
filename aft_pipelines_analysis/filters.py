@@ -1,4 +1,13 @@
 from Utils import extract2dict
+from pandas import DataFrame as df
+import tqdm
+
+BED_INFO = df.from_csv('/home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed', sep='\t', header=None,
+                       index_col=None)
+range_list = []
+for idx in tqdm.tqdm(range(BED_INFO.shape[0])):
+    s, e = BED_INFO.iloc[idx, [1, 2]].values.tolist()
+    range_list += range(s, e + 1)
 
 def snp_common(snpfile_list,file_df):
 
@@ -43,13 +52,13 @@ def cov_filter(file_df,threshold = 7):
 def cov_filter_info_Version(file_df,threshold = 10):
     if 'N_mut_cov' not in file_df:
         return 'Wrong Columns'
+    file_df.index = range(file_df.shape[0])
+    file_df = file_df.loc[file_df.N_mut_cov != 'Totally Off target', :]
+    _N_cov = file_df.loc[:, ['N_ref_cov', 'N_mut_cov']].astype(float).sum(1)
+    _T_cov = file_df.loc[:, ['T_ref_cov', 'T_mut_cov']].astype(float).sum(1)
+    high_cov_bucket = list(file_df.loc[(_N_cov >= threshold) & (_T_cov >= threshold) & (
+                file_df.loc[:, 'T_mut_per'] > file_df.loc[:, 'N_mut_per']), :].index)
 
-    high_cov_bucket = []
-    for _index in list(file_df.index):
-        _N_cov = file_df.loc[_index, ['N_ref_cov','N_mut_cov']].sum()
-        _T_cov = file_df.loc[_index, ['T_ref_cov','T_mut_cov']].sum()
-        if _N_cov >= threshold and _T_cov >= threshold:
-            high_cov_bucket.append(_index)
     return high_cov_bucket
 
 
@@ -61,13 +70,24 @@ def F_filter(file_df,option='lower',threshold=0.03):
     for _index in list(file_df.index):
         _info = file_df.loc[_index, 'Otherinfo']
         _query = extract2dict(_info)
+
+        af_info = _query['AF']
+        if ',' in af_info:
+            af_info = float(af_info.split(',')[0])
+        else:
+            af_info = float(af_info)
         if option == 'higher':
-            if float(_query['AF']) >= threshold:
+            if af_info >= threshold:
                 lowF_bucket.append(_index)
         elif option == 'lower':
-            if float(_query['AF']) <= threshold:
+            if af_info <= threshold:
                 lowF_bucket.append(_index)
     return lowF_bucket
+
+
+def offtarget_filter(file_df):
+    subset_df = file_df.loc[~file_df.loc[:, 'Start'].isin(range_list), :]
+    return list(subset_df.index)
 
 def clinvar_filter(file_df,not_in = ['benign','likely benign']):
     clin_imp_bucket = []

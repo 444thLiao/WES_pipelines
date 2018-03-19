@@ -1,6 +1,7 @@
 
 from pandas import DataFrame as df
 from collections import Counter
+import tqdm
 def merge_overlap_tuple(alist):
     """
     input a bit list with lots of tuple inside it.
@@ -200,7 +201,7 @@ def find_haplotype(csv,bam):
     _df.sort_values(['Chr','Start'],inplace=True)
     _df.index = range(len(_df))
     bucket = []
-    for each in _list:
+    for each in tqdm.tqdm(_list):
         _cache = [tuple(_df.iloc[_idx,:5])for _idx in each]
         snv2reads = fetch_possible_reads(bam,_cache)
         matrix_of_haplotype = parse_possible_reads(snv2reads)
@@ -217,7 +218,7 @@ def haplotype_report(haplotype_bucket,output_file):
     report_str = 'Chr\tStart\tEnd\tRef\tAlt\tGroup_ID\tHaplotype_ID\n'
     count_group = 0
 
-    for SNVs in haplotype_bucket:
+    for SNVs in tqdm.tqdm(haplotype_bucket):
         count_group +=1
         haplotype_id = 0
         for SNV in SNVs:
@@ -228,3 +229,12 @@ def haplotype_report(haplotype_bucket,output_file):
                 haplotype_id+=1
     with open(output_file,'w') as f1:
         f1.write(report_str)
+
+
+if __name__ == '__main__':
+    import sys
+
+    csv_file = sys.argv[1]
+    bam_file = sys.argv[2]
+    output_file = sys.argv[3]
+    haplotype_report(find_haplotype(csv_file, bam_file), output_file)

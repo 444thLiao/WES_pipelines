@@ -1,6 +1,6 @@
-from pandas import DataFrame as df
+import pandas as pd
 def csv2bed(csv_path,output):
-    cache = df.from_csv(csv_path,index_col=False)
+    cache = pd.read_csv(csv_path, index_col=None)
     cache.Start = cache.Start-1
 
     sorter=['chrM',
@@ -103,3 +103,11 @@ def csv2bed(csv_path,output):
 
     with open(output,'w') as f1:
         cache.iloc[:,:3].to_csv(f1,index=False,header=None,sep='\t')
+
+
+if __name__ == '__main__':
+    import sys
+
+    input_path = sys.argv[1]
+    output_path = sys.argv[2]
+    csv2bed(input_path, output_path)

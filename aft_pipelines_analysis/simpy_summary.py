@@ -1,40 +1,38 @@
-from pandas import DataFrame as df
+import pandas as pd
 from collections import Counter,defaultdict
 import os
 def make_summary(input_csv):
+    count = 0
     if type(input_csv) == str:
-        result = 'Gene_fun\tExonic_fun\tcount\n'
-        cache_df = df.from_csv(input_csv,index_col=False)
+        result = pd.DataFrame(columns=['Gene_fun', 'Exonic_fun', 'count'])
+        cache_df = pd.read_csv(input_csv)
         funcs = set(cache_df.loc[:,'Func.refGene'])
         for _func in funcs:
             counter_yet = Counter(list(cache_df[cache_df.loc[:,'Func.refGene'] == _func].loc[:,'ExonicFunc.refGene']))
             for _k in sorted(counter_yet.keys()):
-                result += '%s\t%s\t%s\n' % (_func,_k,str(counter_yet[_k]))
+                result.loc[count, :] = [_func, _k, str(counter_yet[_k])]
+                count += 1
         return result
     else:
-        result = 'Gene_fun\tExonic_fun'
-        fields_bucket = defaultdict(list)
-        for path in input_csv:
-            cache_df = df.from_csv(path,index_col=False)
-            funcs = set(cache_df.loc[:, 'Func.refGene'])
-            for _func in funcs:
-                fields_bucket[_func] += list(set(cache_df[cache_df.loc[:,'Func.refGene'] == _func].loc[:,'ExonicFunc.refGene']))
-            result += '\t' + os.path.basename(path).split('_')[0]
-        result+='\n'
-        for _k in fields_bucket.keys():
-            fields_bucket[_k] = list(set(fields_bucket[_k]))
-
-        for _func in fields_bucket.keys():
-            for exonic in fields_bucket[_func]:
-                for path in input_csv:
-                    cache_df = df.from_csv(path, index_col=False)
-                    count = len(cache_df[(cache_df.loc[:,'Func.refGene']== _func) & (cache_df.loc[:,'ExonicFunc.refGene']== exonic)])
-                    if not result.endswith('\n'):
-                        result += '\t%s' % str(count)
-                    else:
-                        result += '%s\t%s\t%s' % (_func, exonic, str(count))
-                result += '\n'
+        columns = ['Gene_fun', 'Exonic_fun']
+        for _csv in input_csv:
+            samples_name = os.path.basename(_csv).split('.mt2')[0]
+            columns.append(samples_name)
+        result = pd.DataFrame(columns=columns)
+        for _csv in input_csv:
+            samples_name = os.path.basename(_csv).split('.mt2')[0]
+            cache_df = pd.read_csv(_csv)
+            counter_yet = Counter(
+                [';;;'.join(_) for _ in cache_df.loc[:, ['Func.refGene', 'ExonicFunc.refGene']].values.tolist()])
+            for _k in sorted(counter_yet.keys()):
+                result.loc[_k, samples_name] = counter_yet[_k]
+                result.loc[_k, 'Gene_fun'] = _k.split(';;;')[0]
+                result.loc[_k, 'Exonic_fun'] = _k.split(';;;')[1]
+        result.index = range(result.shape[0])
+        result.sort_values(['Gene_fun', 'Exonic_fun'], inplace=True)
+        result.fillna(0, inplace=True)
         return result
+
 
 def construct_biomarkers_csv(snvs_indels_biomarkers,snvs_indels_tiers,output_csv):
     cols = ['GENOMIC_CHANGE',
@@ -51,8 +49,8 @@ def construct_biomarkers_csv(snvs_indels_biomarkers,snvs_indels_tiers,output_csv
             'BM_DISEASE_NAME',
             'BM_DRUG_NAMES',
             'BM_CITATION',]
-    biomarkers = df.from_csv(snvs_indels_biomarkers,sep='\t',index_col=False)
-    tiers = df.from_csv(snvs_indels_tiers,sep='\t',index_col=False)
+    biomarkers = pd.read_csv(snvs_indels_biomarkers, sep='\t')
+    tiers = pd.read_csv(snvs_indels_tiers, sep='\t')
     biomarkers.index = biomarkers.GENOMIC_CHANGE
     tiers.index = tiers.GENOMIC_CHANGE
 
@@ -80,7 +78,7 @@ def extract_tier2(snvs_indels_tiers,output_csv):
             'BM_DISEASE_NAME',
             'BM_DRUG_NAMES',
             'BM_CITATION', ]
-    tiers = df.from_csv(snvs_indels_tiers,sep='\t',index_col=False)
+    tiers = pd.read_csv(snvs_indels_tiers, sep='\t')
 
     tiers.index = tiers.GENOMIC_CHANGE
     cancer_hotspots = tiers[tiers.TIER == 'TIER 2'].loc[:,cols]

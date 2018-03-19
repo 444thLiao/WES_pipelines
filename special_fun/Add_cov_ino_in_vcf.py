@@ -186,6 +186,7 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/
     field2 = "SAF"
     field3 = "PoS"
     NT_SIG = [pfn(_bam, 'mt2_for') for _bam in bam_list]
+    NT_name = [pfn(_bam, 'sample_name') for _bam in bam_list]
     if type(vcf_path) == str:
         vcf_readed = vcf.Reader(open(vcf_path, 'r'))
     else:
@@ -196,11 +197,8 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/
             print 'Wrong vcf, it is a %s' % str(type(vcf_path))
 
     pos_list = parsed_vcf2pos_list(vcf_path)
-    samples = count_sample(vcf_readed.samples)
-    if len(samples) == 1:
-        raise IOError
-    else:
-        is_single = False
+
+    is_single = False
     right_infos = vcf_readed.infos
     machine = right_infos.values()[0]
     # Modify the info part.
@@ -240,15 +238,8 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/
             for sample_call in record.samples:
                 # it needs to fix the sample and the cov_info order.
                 sample = str(sample_call.sample)
-                if sample != 'NORMAL' and sample != 'TUMOR':
-                    print record.samples , sample , type(sample_call.sample)
-                    raise IOError
 
-                if sample == 'NORMAL':
-                    idx = NT_SIG.index(N_sig)
-                else:
-                    idx = NT_SIG.index(T_sig)
-
+                idx = [NT_SIG.index(s) for s, n in zip(NT_SIG, NT_name) if sample == n][0]
                 cov_info = all_cov_info[idx][query_for]
 
                 ref_base, ref_cov = cov_info[0]
@@ -262,7 +253,7 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/
                 else:
                     alt_base, alt_cov = cov_info[1]
                 ### fix the bucket order to normal-tumore order.
-                if sample == 'NORMAL' :
+                if sample == [n for s, n in zip(NT_SIG, NT_name) if s == N_sig]:
                     buckec_SAD.insert(0,int(alt_cov))
                     buckec_SAD.insert(0,int(ref_cov))
 
@@ -270,7 +261,7 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/
                         bucket_SAF.insert(0,round(float(alt_cov) / sum((int(ref_cov), int(alt_cov))), 4))
                     else:
                         bucket_SAF.insert(0,0)
-                    data = dict(sample_call.data._asdict())
+                    # data = dict(sample_call.data._asdict())
                     for ori_format in ori_format2info:
                         if ori_format =='AD':
                             exec "bucket_{i}.insert(0,tuple(data['{i}'])[0])".format(i=ori_format)
@@ -284,7 +275,7 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/
                         bucket_SAF.append(round(float(alt_cov) / sum((int(ref_cov), int(alt_cov))), 4))
                     else:
                         bucket_SAF.append(0)
-                    data = dict(sample_call.data._asdict())
+                    # data = dict(sample_call.data._asdict())
                     for ori_format in ori_format2info:
                         if ori_format == 'AD':
                             exec "bucket_{i} += list(data['{i}'])".format(i=ori_format)

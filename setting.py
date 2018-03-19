@@ -22,6 +22,8 @@ bgzip_pro = '/usr/bin/bgzip'
 tabix_pro = '/usr/bin/tabix'
 gemini_pro = '/usr/local/bin/gemini'
 annovar_pro = '/home/liaoth/tools/annovar'
+samtools_pro = '/home/liaoth/.local/bin/bin/samtools'
+gatk_pro = '/tools/GATK-4.0/gatk'
 #####Paired format.
 PE1_fmt = '{input}_R1_001'
 PE2_fmt = '{input}_R2_001'

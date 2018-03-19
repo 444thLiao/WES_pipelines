@@ -1,5 +1,5 @@
 #from __future__ import absolute_import
-import pandas
+import pandas, os, re
 def extract2dict(Otherinfo):
     _info = Otherinfo.split('\t')
     _n = _info[-2].split(':')
@@ -60,7 +60,8 @@ def construct_pos_list(bed_df,coord = 0):
 
 from pandas import DataFrame as df
 import pysam
-from Whole_pipelines.setting import REF_file_path
+
+REF_file_path = '/home/liaoth/data/hg19/ucsc.hg19.fasta'
 def cal_fun(bam_path, bed_file):
     '''
     Using a input bed file and a bam file, cal each pos cov_info from the intervals in bed.
@@ -127,41 +128,47 @@ def cal_fun(bam_path, bed_file):
 
 
 def pfn(filename, wanted):
-    import setting
-    import re
-    '''
-    Basic function for parse input sample name to formatted format in order to import into pipelines.
-    :type Parse_Function
-
-    :param filename:
-    :param wanted:
-    :return:
-    '''
-    if '/' in filename:
-        filename = filename.rpartition('/')[2]
+    filename = os.path.basename(filename)
     storged_dict = {}
-    if '_' in filename and '-' in filename:
-        storged_dict['project_name'] = filename[:min(filename.index('_'), filename.index('-'))]
+    if not PROJECT_NAME:
+        if '_' in filename and '-' in filename:
+            storged_dict['project_name'] = filename[:min(filename.index('_'), filename.index('-'))]
+        else:
+            try:
+                storged_dict['project_name'] = filename[:filename.index('_')]
+            except:
+                storged_dict['project_name'] = filename[:filename.index('-')]
     else:
+        storged_dict['project_name'] = PROJECT_NAME
+    try:
+        storged_dict['sample_name'] = re.findall(sample_name_pattern, filename)[0]
+        storged_dict['sample_ID'] = re.findall(sample_ID_pattern, filename)[0]
+    except:
+        print 'wrong pattern, please check it.\nOri file name: %s' % (filename)
+    if 'R' in filename:
         try:
-            storged_dict['project_name'] = filename[:filename.index('_')]
+            storged_dict['pair_ID'] = re.findall(pair_ID_pattern, filename)[0]
         except:
-            storged_dict['project_name'] = filename[:filename.index('-')]
-
-    #storged_dict['sample_name'] = filename.partition('_S')[0]
-    storged_dict['sample_name'] = re.findall(setting.sample_name_pattern,filename)[0]
-
-    new_filename = filename[filename.index('_') + 1:]
-    storged_dict['sample_ID'] = re.findall(setting.sample_ID_pattern, new_filename)[0]
-    if 'R' in new_filename:
+            print 'wrong pattern, please check it.\nOri file name: %s' % (filename)
+    if ((NORMAL_SIG in filename) or (TUMOR_SIG in filename)) and (NORMAL_SIG and TUMOR_SIG):
         try:
-            storged_dict['pair_ID'] = re.findall(setting.pair_ID_pattern, new_filename)[0]
+            storged_dict['mt2_for'] = re.findall(mt2_for_pattern, filename)[0]
+            storged_dict['pair_name'] = re.findall(pair_name_pattern, filename)[0]
         except:
-            print new_filename
-    if setting.NORMAL_SIG in filename or setting.TUMOR_SIG in filename:
-        storged_dict['mt2_for'] = re.findall(setting.mt2_for_pattern, filename)[0]
-        storged_dict['pair_name'] = re.findall(setting.pair_name_pattern,filename)[0]
-
+            print 'wrong pattern, please check it.\nOri file name: %s' % (filename)
+    else:
+        if input_pair_tuple:
+            # self input mt2 pair name, for some you can't strip simple N/T out to form pair result prefix file.
+            for _pair in input_pair_tuple:
+                # order is important, first one is tumor sample, next is normal sample
+                if _pair[0] in filename:
+                    storged_dict['mt2_for'] = TUMOR_SIG
+                    storged_dict['pair_name'] = storged_dict['project_name'] + '_%s' % input_pair_tuple.index(_pair)
+                elif _pair[1] in filename:
+                    storged_dict['mt2_for'] = NORMAL_SIG
+                    storged_dict['pair_name'] = storged_dict['project_name'] + '_%s' % input_pair_tuple.index(_pair)
+                else:
+                    continue
     if wanted == 'all':
         return storged_dict
     else:

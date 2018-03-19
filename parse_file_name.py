@@ -1,5 +1,3 @@
-
-import re
 """
 Basic function for parse input sample name to formatted format in order to import into pipelines.
 :type Parse_Function
