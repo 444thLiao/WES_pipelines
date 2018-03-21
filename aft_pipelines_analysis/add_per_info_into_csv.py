@@ -100,6 +100,9 @@ def add_per_info(result_csvs,output_csvs,tumor_bam,normal_bam,bed_file):
     ref_ = pysam.FastaFile(fasta)
 
     for result_csv,output_csv in zip(result_csvs,output_csvs):
+        result_csv = os.path.expanduser(result_csv)
+        output_csv = os.path.expanduser(output_csv)
+        # ~ in path is missing location.It will raise error, so need to expand it.
         ori_csv = pd.read_csv(result_csv, index_col=None)
         t2 = time.time()
         print '{:#^40}'.format('Loaded/Inited all required file...... Using %d ' % (t2 - t1))
@@ -134,7 +137,8 @@ def add_per_info(result_csvs,output_csvs,tumor_bam,normal_bam,bed_file):
         # a_num.N_mut_per = a_num.N_mut_per.astype(float)
         # a_num = a_num[a_num.T_mut_per >= a_num.N_mut_per]
         # a_num = a_num[a_num.T_mut_per != 0]
-
+        if not os.path.isdir(os.path.dirname(output_csv)):
+            os.makedirs(os.path.dirname(output_csv))
         with open(output_csv,'w') as f1:
             ori_csv.to_csv(f1,index=False)
 
