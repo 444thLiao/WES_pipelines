@@ -29,8 +29,7 @@ def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'
     count = 0
     pro_count = 0
     if debug_:
-        import pdb;
-        pdb.set_trace()
+        import pdb;pdb.set_trace()
     for i in tqdm.tqdm(range(bed_file.shape[0]), total=bed_file.shape[0]):
         Chr, start, end, Gene_name = bed_file.iloc[i, [0, 1, 2, 3]].values
         start = min(int(start), int(end))

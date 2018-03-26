@@ -1,15 +1,11 @@
 from __future__ import print_function
 import sys,os,glob,re
 import pandas as pd
-
+import tqdm
+import multiprocessing
 Total_pos_num = 65894148
 
-
 # /home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed
-
-def cal_fastq_reads(fq_path):
-    a = os.popen("zgrep '^+$' -c %s" % fq_path)
-    return int(a.read())
 
 def cal_fastq_bp(fq_path):
     a = os.popen("zgrep -E '^[ACTGN]+$' %s | wc" % fq_path)
@@ -47,6 +43,31 @@ def write_bp(_path,colname):
                 sample_n = sorted(sample_n)[-1]
             result_df.loc[sample_n,colname] = r1_bp + r2_bp
 
+def sum_bam_bp(each,format,target,depths=False):
+    if os.path.isfile(each.partition('.')[0] + '_cov.info'):
+        tmp = open(each.partition('.')[0] + '_cov.info').xreadlines()
+        bases = ['A','T','C','G']
+        each_pos = []
+        count = 0
+        for line in tmp:
+            if count ==0:
+                idx = [line.split('\t').index(_) for _ in bases]
+            else:
+                each_pos.append(sum([int(line.split('\t')[_]) for _ in idx]))
+            count += 1
+        print('iterations all row in cov.info')
+        total_base_count = sum(each_pos)
+        avg_depth = total_base_count / float(count)
+        idx_name = os.path.basename(each).split(format)[0]
+        result_df.loc[idx_name, target] = total_base_count
+        if depths:
+            result_df.loc[idx_name,'>1X'] = len([_ for _ in each_pos if _ > 1])
+            result_df.loc[idx_name, '>5X'] = len([_ for _ in each_pos if _ > 5])
+            result_df.loc[idx_name, '>10X'] = len([_ for _ in each_pos if _ > 10])
+            result_df.loc[idx_name, '>20X'] = len([_ for _ in each_pos if _ > 20])
+        if target =='remove dup target mapping':
+            result_df.loc[idx_name, 'avg_depth'] = avg_depth
+
 if __name__ == '__main__':
     setting_file = sys.argv[-1]
     dir_path = os.path.dirname(setting_file)
@@ -55,74 +76,27 @@ if __name__ == '__main__':
 
     field_names = ['Sample ID','raw data/bp','clean data/bp','genome mapping','target mapping',
                    'remove dup target mapping','dup','target_length/bp','avg_depth','>1X','>5X','>10X','>20X']
-    if not filter_str:
-        filter_str = '-999'
+    filter_str = '_somatic'
+
     sample_names = [os.path.basename(_i) for _i in glob.glob(
-        os.path.join(base_outpath, '{PN}_result/{PN}*[{n}{t}]*'.format(PN=PROJECT_NAME, n=NORMAL_SIG, t=TUMOR_SIG)))]
+        os.path.join(base_outpath, '{PN}_result/{PN}*[{n}{t}]*'.format(PN=PROJECT_NAME, n=NORMAL_SIG, t=TUMOR_SIG))) if filter_str not in _i]
     raw_path = [[_k for _k in glob.glob(os.path.join(base_inpath, '*%s*R1*.gz' % i ) ) if filter_str not in _k ][0] for i in sample_names]
     trim_path = glob.glob(os.path.join(base_outpath, '%s_result/trim_result/*.clean.fq.gz' % PROJECT_NAME))
     result_df = pd.DataFrame(index=sample_names,columns=field_names[1:])
-    # import pdb;pdb.set_trace()
+
     write_bp(trim_path,'clean data/bp')
     print('completing clean data base pair count.')
     raw_path += [_.replace('R1','R2') for _ in raw_path]
     write_bp(raw_path, 'raw data/bp')
     print('completing raw data base pair count.')
     bam_path = glob.glob(os.path.join(base_outpath, '%s_result/*/*_sorted.bam' % PROJECT_NAME))
-    for each in bam_path:
-        # tmp = os.popen('/usr/bin/samtools flagstat %s' % each)
-        # a = tmp.read()
-        # maprate = parse_samtools_info(a,'mapped')
-        # result_df.loc[os.path.basename(each).split('_sorted')[0], 'genome mapping'] = float(maprate[0])
-
-        if os.path.isfile(each.replace('_sorted.bam','_sorted_cov.info')):
-            #tmp = pd.read_csv(each.replace('_sorted.bam','_sorted_cov.info'),sep='\t',low_memory=False,engine=)
-            tmp = open(each.replace('_sorted.bam','_sorted_cov.info')).xreadlines()
-            bases = ['A','T','C','G']
-            each_pos = []
-            count = 0
-            for line in tmp:
-                if count ==0:
-                    idx = [line.split('\t').index(_) for _ in bases]
-                else:
-                    each_pos.append(sum([int(line.split('\t')[_]) for _ in idx]))
-                count += 1
-            total_base_count = sum(each_pos)
-            result_df.loc[os.path.basename(each).split('_sorted')[0], 'target mapping'] = total_base_count
+    for each in tqdm.tqdm(bam_path):
+        sum_bam_bp(each,format='_sorted',target='target mapping')
     print('completing sorted bam(aligned bam) base pair count.')
     bam_path = glob.glob(os.path.join(base_outpath, '%s_result/*/*.recal_reads.bam' % PROJECT_NAME))
-    for each in bam_path:
-        if os.path.isfile(each.replace('.recal.recal_reads', '_cov.info')):
-            tmp = open(each.replace('.recal_reads.bam', '_cov.info')).xreadlines()
-            bases = ['A','T','C','G']
-            id_labels = ['Chr', 'Posistion']
-            each_pos_id = []
-            each_pos = []
-            count = 0
-            for line in tmp:
-                if count ==0:
-                    idx = [line.split('\t').index(_) for _ in bases]
-                    id_id_labels = [line.split('\t').index(_) for _ in id_labels]
-                else:
-                    pos_id = ';'.join([str(line.split('\t')[_]) for _ in id_id_labels])
-                    if pos_id not in each_pos_id:
-                        each_pos.append(sum([int(line.split('\t')[_]) for _ in idx]))
-                    each_pos_id.append(pos_id)
-                count += 1
-            total_base_count = sum(each_pos)
-            avg_depth = total_base_count / float(len(each_pos_id))
-            gt1 = len([_ for _ in each_pos if _ > 1])
-            gt5 = len([_ for _ in each_pos if _ > 5])
-            gt10 = len([_ for _ in each_pos if _ > 10])
-            gt20 = len([_ for _ in each_pos if _ > 20])
-            idx_name = os.path.basename(each).split('.dedup')[0]
-            result_df.loc[idx_name, 'remove dup target mapping'] = total_base_count
-            result_df.loc[idx_name, 'avg_depth'] = avg_depth
-            result_df.loc[idx_name, '>1X'] = gt1
-            result_df.loc[idx_name, '>5X'] = gt5
-            result_df.loc[idx_name, '>10X'] = gt10
-            result_df.loc[idx_name, '>20X'] = gt20
+    for each in tqdm.tqdm(bam_path):
+        print(each)
+        sum_bam_bp(each=each, format='.recal',target='remove dup target mapping',depths=True)
+    result_df.to_csv(os.path.join(base_outpath,'quality_accessment_raw.csv'))
     print('completing recal bam(before Calling) base pair count with different depth summary.')
-    import pdb;
-
-    pdb.set_trace()
+    import pdb;pdb.set_trace()

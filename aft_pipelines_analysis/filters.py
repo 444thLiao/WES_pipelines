@@ -34,26 +34,12 @@ def pass_filter(file_df,_in = ['PASS']):
     return pass_bucket
 
 
-def cov_filter(file_df,threshold = 7):
-    if 'Otherinfo' not in file_df:
-        return 'Wrong Columns'
-
-    high_cov_bucket = []
-    for _index in list(file_df.index):
-        _info = file_df.loc[_index, 'Otherinfo']
-        _query = extract2dict(_info)
-        try:
-            if sum([int(_ad) for _ad in _query['AD'].split(',')]) >= threshold:
-                high_cov_bucket.append(_index)
-        except:
-            print _index,'it should be a indel'
-    return high_cov_bucket
 
 def cov_filter_info_Version(file_df,threshold = 10):
     if 'N_mut_cov' not in file_df:
         return 'Wrong Columns'
     file_df.index = range(file_df.shape[0])
-    file_df = file_df.loc[file_df.N_mut_cov != 'Totally Off target', :]
+    file_df = file_df.loc[file_df.N_mut_cov != 'Off target', :]
     _N_cov = file_df.loc[:, ['N_ref_cov', 'N_mut_cov']].astype(float).sum(1)
     _T_cov = file_df.loc[:, ['T_ref_cov', 'T_mut_cov']].astype(float).sum(1)
     high_cov_bucket = list(file_df.loc[(_N_cov >= threshold) & (_T_cov >= threshold) & (

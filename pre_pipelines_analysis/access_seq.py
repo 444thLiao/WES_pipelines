@@ -1,6 +1,5 @@
 import re, glob, pandas, os
 from pandas import DataFrame as df
-from progressbar import *
 import time, tqdm
 import threading
 def cov_depth(cov_info):
@@ -12,8 +11,6 @@ def cov_depth(cov_info):
     raw_info = pandas.read_csv(cov_info,sep='\t',index_col=False,engine='python')
     raw_info.base = list(raw_info.loc[:, ['A', 'T', 'C', 'G']].sum(1))
 
-    #total = len(raw_info)
-    #coverage_info = list(raw_info.loc[:, ['A', 'T', 'C', 'G']].sum(1))
     result_depths = []
     result_coverages = []
     depths_name = []
@@ -23,8 +20,16 @@ def cov_depth(cov_info):
         depths_name.append('%sX' % str(_depth))
         result_coverages.append(_coverage)
         result_depths.append(_depth)
-    return result_depths,result_coverages,depths_name
+    df_result = df(index=depths_name, columns=['coverage', 'depths'])
+    df_result.loc[:, 'coverage'] = result_coverages
+    df_result.loc[:, 'depths'] = result_depths
+    df_result.to_csv(cov_info.replace('_cov.info', '_cov_summary.info'), sep='\t')
+    return df_result
+    # return result_depths,result_coverages,depths_name
 
+t1 = time.clock()
+tmp = cov_depth('~/project/XK_WES/180309_all/output/XK_result/XK-25T/XK-25T_cov.info')
+print(time.clock()-t1)
 
 def cov_depth_to_file(cov_info, output_each_pos=False):
     """

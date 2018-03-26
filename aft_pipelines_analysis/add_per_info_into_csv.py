@@ -128,7 +128,7 @@ def add_per_info(result_csvs,output_csvs,tumor_bam,normal_bam,bed_file):
                 parse_bam(tb,Chr,Pos,End,Ref,Alt,ref_,sig='T')
             if normal_bam:
                 parse_bam(nb, Chr, Pos, End, Ref, Alt,ref_, sig='N')
-        for _key in added_col:
+        for _key in sorted(added_col.keys()):
             ori_csv.loc[:,_key] = added_col[_key]
         print '{:#^40}'.format('Almost Completing. Iteration used %d.' % (time.time()-t2))
         print '{:#^40}'.format('filtering all unconvinced snp/indel.')

@@ -85,3 +85,9 @@ def extract_tier2(snvs_indels_tiers,output_csv):
     cancer_hotspots.rename(columns={'SYMBOL': 'GENE'}, inplace=True)
     with open(output_csv,'w') as f1:
         cancer_hotspots.to_csv(f1,index=False)
+
+
+if __name__ == '__main__':
+    # TODO
+    # finish aft pipelines
+    pass
