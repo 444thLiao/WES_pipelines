@@ -1,6 +1,6 @@
 import re, glob, pandas, os
 from pandas import DataFrame as df
-import time, tqdm
+import  tqdm
 import multiprocessing
 def run(cmd):
     print(cmd)
@@ -18,7 +18,7 @@ def cov_depth(cov_info):
     result_depths = []
     result_coverages = []
     depths_name = []
-    for _i in xrange(1,101):
+    for _i in tqdm.tqdm(range(1,101),total=100):
         _coverage = len(raw_info[raw_info.base >= _i*10])
         _depth = _i*10
         depths_name.append('%sX' % str(_depth))
@@ -33,4 +33,4 @@ def cov_depth(cov_info):
 
 
 pool = multiprocessing.Pool(4)
-pool.map(cov_depth,[_ for _ in glob.glob('/home/liaoth/project/XK_WES/180309_all/output/XK_result/*/*cov.info') if 'sorted' not in _])
+pool.map(cov_depth,[_ for _ in glob.glob('/home/liaoth/project/XK_WES/180321/output/XK_result/*/*cov.info') if 'sorted' not in _])

@@ -3,15 +3,17 @@ import glob
 import os
 import multiprocessing
 
+rep_name = '180321'
+############################################################
 python_exe = '/home/liaoth/tools/pysamstats_venv/bin/python'
 
 cmdline = '{py_exe} ~/tools/Whole_pipelines/aft_pipelines_analysis/add_per_info_into_csv.py -i {input} -o {output} -tb {tb} -nb {nb} -b ~/data_bank/XK_WES/Sureselect_V6_COSMIC_formal.bed'
 
-input_path = '/home/liaoth/project/XK_WES/180309_all/temp/*_all_except_AF_depth_PASS.csv'
+input_path = '/home/liaoth/project/XK_WES/%s/temp_/*_all_except_AF_depth_PASS.csv' % rep_name
 output_path = '{prefix}_all_except_AF_PASS_with_info.csv'
 
-tb_bam_path = "~/project/XK_WES/180309_all/output/XK_result/{tb}/{tb}.recal_reads.bam"
-nb_bam_path = "~/project/XK_WES/180309_all/output/XK_result/{nb}/{nb}.recal_reads.bam"
+tb_bam_path = "~/project/XK_WES/%s/output/XK_result/{tb}/{tb}.recal_reads.bam" % rep_name
+nb_bam_path = "~/project/XK_WES/%s/output/XK_result/{nb}/{nb}.recal_reads.bam" % rep_name
 cmdlines = []
 def run(cmd):
     print(cmd)

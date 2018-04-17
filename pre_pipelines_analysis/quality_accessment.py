@@ -83,7 +83,7 @@ if __name__ == '__main__':
     raw_path = [[_k for _k in glob.glob(os.path.join(base_inpath, '*%s*R1*.gz' % i ) ) if filter_str not in _k ][0] for i in sample_names]
     trim_path = glob.glob(os.path.join(base_outpath, '%s_result/trim_result/*.clean.fq.gz' % PROJECT_NAME))
     result_df = pd.DataFrame(index=sample_names,columns=field_names[1:])
-
+    print('start processing......')
     write_bp(trim_path,'clean data/bp')
     print('completing clean data base pair count.')
     raw_path += [_.replace('R1','R2') for _ in raw_path]

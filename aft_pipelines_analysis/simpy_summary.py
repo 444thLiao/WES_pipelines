@@ -16,11 +16,11 @@ def make_summary(input_csv):
     else:
         columns = ['Gene_fun', 'Exonic_fun']
         for _csv in input_csv:
-            samples_name = os.path.basename(_csv).split('.mt2')[0]
+            samples_name = os.path.basename(_csv).split('_')[0]
             columns.append(samples_name)
         result = pd.DataFrame(columns=columns)
         for _csv in input_csv:
-            samples_name = os.path.basename(_csv).split('.mt2')[0]
+            samples_name = os.path.basename(_csv).split('_')[0]
             cache_df = pd.read_csv(_csv)
             counter_yet = Counter(
                 [';;;'.join(_) for _ in cache_df.loc[:, ['Func.refGene', 'ExonicFunc.refGene']].values.tolist()])
@@ -31,6 +31,9 @@ def make_summary(input_csv):
         result.index = range(result.shape[0])
         result.sort_values(['Gene_fun', 'Exonic_fun'], inplace=True)
         result.fillna(0, inplace=True)
+        result.loc['total',:] = result.sum(0)
+        result.loc['total','Gene_fun'] ='total'
+        result.loc['total', 'Exonic_fun'] = ''
         return result
 
 

@@ -163,20 +163,18 @@ if __name__ == '__main__':
         else:
             normal_name = each_pair + NORMAL_SIG
             tumor_name = each_pair + TUMOR_SIG
-        try:
-            germline = glob.glob(os.path.join(csv_output_dir, 'germline', normal_name + '*.csv'))[0]
-            somatic_normal = glob.glob(os.path.join(csv_output_dir, 'somatic', normal_name + '*.csv'))[0]
-            somatic_tumor = glob.glob(os.path.join(csv_output_dir, 'somatic', tumor_name + '*.csv'))[0]
-            somatic_pair = glob.glob(os.path.join(csv_output_dir, 'somatic', each_pair + '*.csv'))[0]
-            output_file = os.path.join(storge_dir,'%s_all_except_AF_depth.csv' % each_pair)
-            if not os.path.isdir(os.path.dirname(output_file)):
-                os.makedirs(os.path.dirname(output_file))
-            print("filter_pipelines2(%s,%s,%s,%s,%s,pp=[3,4,5,6])" % (germline,somatic_normal,somatic_tumor,somatic_pair,output_file))
-            filter_pipelines2(germline,somatic_normal,somatic_tumor,somatic_pair,output_file,pp=[3,4,5,6])
-            filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair, output_file.replace('except_AF_depth.csv','except_AF_depth_PASS.csv'), pp=[3, 4, 6])
-            # print()
-        except:
-            import ipdb;ipdb.set_trace()
+        germline = glob.glob(os.path.join(csv_output_dir, 'germline', normal_name + '.merged*.csv'))[0]
+        somatic_normal = glob.glob(os.path.join(csv_output_dir, 'somatic', normal_name + '.mt2*.csv'))[0]
+        somatic_tumor = glob.glob(os.path.join(csv_output_dir, 'somatic', tumor_name + '.mt2*.csv'))[0]
+        somatic_pair = glob.glob(os.path.join(csv_output_dir, 'somatic', each_pair + '.mt2*.csv'))[0]
+        output_file = os.path.join(storge_dir,'%s_all_except_AF_depth.csv' % each_pair)
+        if not os.path.isdir(os.path.dirname(output_file)):
+            os.makedirs(os.path.dirname(output_file))
+        print("filter_pipelines2(%s,%s,%s,%s,%s,pp=[3,4,5,6])" % (germline,somatic_normal,somatic_tumor,somatic_pair,output_file))
+        filter_pipelines2(germline,somatic_normal,somatic_tumor,somatic_pair,output_file,pp=[3,4,5,6])
+        filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair, output_file.replace('except_AF_depth.csv','except_AF_depth_PASS.csv'), pp=[3, 4, 6])
+        # print()
+
 
     # filter_pipelines2('/home/liaoth/project/170801_XK/result/germline/XK-27W.merged.anno.csv.hg19_multianno.csv',
     #                  '/home/liaoth/project/170801_XK/result/somatic/XK-27W.mt2.merged.anno.hg19_multianno.csv',

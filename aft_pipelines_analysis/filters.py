@@ -39,7 +39,8 @@ def cov_filter_info_Version(file_df,threshold = 10):
     if 'N_mut_cov' not in file_df:
         return 'Wrong Columns'
     file_df.index = range(file_df.shape[0])
-    file_df = file_df.loc[file_df.N_mut_cov != 'Off target', :]
+    file_df = file_df.loc[file_df.N_mut_cov.astype(str) != 'Off target', :]
+    file_df = file_df.loc[file_df.T_mut_cov.astype(str) != 'Off target', :]
     _N_cov = file_df.loc[:, ['N_ref_cov', 'N_mut_cov']].astype(float).sum(1)
     _T_cov = file_df.loc[:, ['T_ref_cov', 'T_mut_cov']].astype(float).sum(1)
     high_cov_bucket = list(file_df.loc[(_N_cov >= threshold) & (_T_cov >= threshold) & (
