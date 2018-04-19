@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pandas as pd
 import tqdm
 import time,os
@@ -91,18 +92,16 @@ def add_per_info(result_csv,output_csv,tumor_bam,normal_bam):
     :return:
     '''
     fasta = '/home/db_public/hg19/ucsc.hg19.fasta'
-    print '{:#^40}'.format('Start Whole project...')
+    print('{:#^40}'.format('Start Whole project...'))
     t1 = time.time()
-    tb_info =
-    nb_info =
     tb = pysam.AlignmentFile(tumor_bam)
     nb = pysam.AlignmentFile(normal_bam)
     ref_ = pysam.FastaFile(fasta)
 
     ori_csv = pd.read_csv(result_csv, index_col=None)
     t2 = time.time()
-    print '{:#^40}'.format('Loaded/Inited all required file...... Using %d ' % (t2 - t1))
-    print '{:#^40}'.format('Star Iteration.......')
+    print('{:#^40}'.format('Loaded/Inited all required file...... Using %d ' % (t2 - t1)))
+    print('{:#^40}'.format('Star Iteration.......'))
     added_col = {'N_mut_cov': [],
      'N_mut_per': [],
      'N_ref_cov': [],
@@ -126,8 +125,8 @@ def add_per_info(result_csv,output_csv,tumor_bam,normal_bam):
             parse_bam(nb, Chr, Pos, End, Ref, Alt,ref_, sig='N')
     for _key in added_col:
         ori_csv.loc[:,_key] = added_col[_key]
-    print '{:#^40}'.format('Almost Completing. Iteration used %d.' % (time.time()-t2))
-    print '{:#^40}'.format('filtering all unconvinced snp/indel.')
+    print('{:#^40}'.format('Almost Completing. Iteration used %d.' % (time.time()-t2)))
+    print('{:#^40}'.format('filtering all unconvinced snp/indel.'))
     try:
         a_num = ori_csv[ori_csv.N_mut_per != 'Off target'] # it doesn't inside the bed file.
     except:

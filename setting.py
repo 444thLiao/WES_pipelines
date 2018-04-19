@@ -7,9 +7,9 @@
 
 ##Noramlly need to change part
 ###    Change Change
-base_outpath = '/home/liaoth/project_formal/170123_XK/output'
-base_inpath = '/home/shared/170123_new/fqs'
-bed_file_path = ''
+base_outpath = '/home/liaoth/project/XK_WES/180321/output'
+base_inpath = '/home/liaoth/data_bank/XK_WES/180321/'
+bed_file_path = '/home/liaoth/data_bank/XK_WES/Sureselect_V6_COSMIC_formal.bed'
 ####For somatic pipelines
 NORMAL_SIG = 'W'
 TUMOR_SIG = 'T'
@@ -17,43 +17,44 @@ TUMOR_SIG = 'T'
 Pair_data = True
 ###### programe path
 vt_pro = '/home/liaoth/tools/vt/vt'
-vep_pro = '/home/liaoth/tools/ensembl-tools-release-87/scripts/variant_effect_predictor/variant_effect_predictor.pl'
+vep_pro = '/home/liaoth/tools/ensembl-vep-release-91/vep'
 bgzip_pro = '/usr/bin/bgzip'
 tabix_pro = '/usr/bin/tabix'
 gemini_pro = '/usr/local/bin/gemini'
 annovar_pro = '/home/liaoth/tools/annovar'
-samtools_pro = '/home/liaoth/.local/bin/bin/samtools'
 gatk_pro = '/tools/GATK-4.0/gatk'
+samtools_pro = '/home/liaoth/.local/bin/bin/samtools'
+
 #####Paired format.
-PE1_fmt = '{input}_R1_001'
-PE2_fmt = '{input}_R2_001'
+PE1_fmt = '{input}_R1'
+PE2_fmt = '{input}_R2'
 #####Single format
-SE_fmt = '{input}_R1_001'
+SE_fmt = '{input}_L001_R1_001'
 ######PCR gene number   ###PCR part
 total_gen = 26
-PCR_ON = True
+PCR_ON = False
 ###### For parse file name in order to pipeline analyze.
-sample_ID_pattern = 'S([0-9]+)'
-pair_ID_pattern = 'R([12])'
-mt2_for_pattern = '[0-9]([%s%s])_S.*' % (NORMAL_SIG, TUMOR_SIG)
-pair_name_pattern = '(.*)[%s%s]_S' % (NORMAL_SIG, TUMOR_SIG)
-sample_name_pattern = '.*'
+sample_ID_pattern = 'XK-([0-9]+)[%s%s](?:-2)?' % (NORMAL_SIG, TUMOR_SIG)
+pair_ID_pattern = '_R([12])'
+mt2_for_pattern = 'XK-[0-9]+([%s%s])' % (NORMAL_SIG, TUMOR_SIG)
+pair_name_pattern = '(XK-[0-9]+)[%s%s](?:-2)?' % (NORMAL_SIG, TUMOR_SIG)
+sample_name_pattern = '(XK-[0-9]+[A-Z](?:-2)?)'
 
 
-input_pair_tuple = ()
-PROJECT_NAME = None
+input_pair_tuple = []
 
-
+PROJECT_NAME = 'XK'
 ##############################################################
 #####
 #####    SELF ADJUST PART OF INPUT FILENAME
 ##### USED IT IN SOME COMPLEXITY FILENAME YOU HARD TO PARSE
 ##############################################################
-self_adjust_fn = False
+self_adjust_fn = True
 filter_str = ''
 R1_INDICATOR = '_R1'
 R2_INDICATOR = '_R2'
 fq_suffix = '.fastq.gz'
+
 
 ##############################################################
 ##
@@ -71,17 +72,16 @@ somatic_single_output_fmt = '{path}/{PN}_result/{SN}_somatic/{SN}'
 somatic_pair_output_fmt2 = '{path}/{PN}_result/{PairN}_somatic/{PairN}'
 somatic_single_output_fmt2 = '{path}/{PN}_result/{SN}_somatic/{SN}'
 
-worker = 12
+worker = 6
 annovar_thread = 20
-bip='172.20.114.242'
+bip=''
 max_memory= 10240
-# unit is kb. default is 10G
 
 ## DB files, Normaly don't need to change.
-REF_file_path = '/home/liaoth/data/hg19/ucsc.hg19.fasta'
-known_gold_cvf = '~/data/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf'
-db_snp = '~/data/hg19/dbsnp_138.hg19.vcf'
-cos_snp = '~/data/combinded_hg19_cosmic_v77.vcf'
+REF_file_path = '/home/db_public/hg19/ucsc.hg19.fasta'
+known_gold_cvf = '/home/db_public/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf'
+db_snp = '/home/db_public/hg19/dbsnp_138.hg19.vcf'
+cos_snp = '/home/db_public/hg19/combinded_hg19_cosmic_v77.vcf'
 genome_version = 'hg19'
 db_names = 'refGene,phastConsElements46way,genomicSuperDups,esp6500siv2_all,1000g2014oct_all,exac03,snp138,ljb26_all,clinvar_20160302'
 ####For cal_fun

@@ -100,6 +100,14 @@ def pack_its_up():
     run(cmdline2)
     run(cmdline3)
 
+def remind_text(base_inpath):
+    #setting_py = os.path.join(os.path.dirname(base_inpath), 'setting.py')
+    os.chdir(os.path.dirname(base_inpath))
+    from setting import *
+    server_setting_path = os.path.join(base_inpath,'setting.py')
+    remind_run_command = ''
+    remind_run_command += '''##/home/liaoth/tools/pysamstats_venv/bin/python2.7 /home/liaoth/tools/Whole_pipelines/pre_pipelines_analysis/quality_accessment.py %s \n''' % server_setting_path
+
 if __name__ == '__main__':
     import sys
     args = sys.argv[-1].split(',')
@@ -109,11 +117,12 @@ if __name__ == '__main__':
             download_scp(project_name)
         else:
             print('wrong command,just pass.')
+
     if '2' in args:
         print('Runing filtered pipelines. Output all samples filtered file into %s' % filtered_csv)
         run_pipelines()
     if '3' in args:
-        fetch_path = input('You need to upload these file to server to cal coverage based on bam files.After you finished, please pass the path with regular expression files to this.')
+        fetch_path = input('''You need to upload these file to server to cal coverage based on bam files.After you finished, please pass the path with regular expression files to this.''')
         if input('Make sure your path is %s . Y/y' % fetch_path).upper() == 'Y':
             download_filtered_files(fetch_path)
         else:
@@ -122,8 +131,6 @@ if __name__ == '__main__':
         print("*" * 50)
         print("Turning final csv file into bed.")
         print("*" * 50)
-
-
         for each in glob.glob('%s/*_with_info.csv' % final_csv):
             filter_out_10(each)
             cmdline = 'python ~/project/Whole_pipelines/aft_pipelines_analysis/csv2bed.py %s %s' % (
