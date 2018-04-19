@@ -106,8 +106,9 @@ def remind_text(base_inpath):
     from setting import *
     server_setting_path = os.path.join(base_inpath,'setting.py')
     remind_run_command = ''
-    remind_run_command += '''##/home/liaoth/tools/pysamstats_venv/bin/python2.7 /home/liaoth/tools/Whole_pipelines/pre_pipelines_analysis/quality_accessment.py %s \n''' % server_setting_path
-
+    remind_run_command += '''##run script in order to generate accessment file. \n\n/home/liaoth/tools/pysamstats_venv/bin/python2.7 /home/liaoth/tools/Whole_pipelines/pre_pipelines_analysis/quality_accessment.py %s \n''' % server_setting_path
+    remind_run_command += '''##run script which is fetch cov_info from .info file and add it into csvfile. \n\n  python2 aft_pipelines_analysis/add_per_info_into_csv.py -i filtered.csv,filtered2.csv -o with_info.csv,with_info2.csv -tb XK-*T/XK-*T.recal_reads.bam,XK-*T/XK-*T.recal_reads.bam -nb XK-*W/XK-*W.recal_reads.bam,XK-*W/XK-*W.recal_reads.bam
+    '''
 if __name__ == '__main__':
     import sys
     args = sys.argv[-1].split(',')

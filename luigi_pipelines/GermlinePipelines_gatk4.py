@@ -43,14 +43,14 @@ class QC_trimmomatic(luigi.Task):
         output2 = PE2_fmt.format(input=pfn(self.PE2, 'sample_name'))
 
         if input2:
-            cmdline = "java -jar ~/tools/Trimmomatic-0.36/trimmomatic-0.36.jar PE -threads 20 {base_in}/{input1}.fastq.gz {base_in}/{input2}.fastq.gz -trimlog {output} {base_out}/{output1}.clean.fq.gz {base_out}/{output1}.unpaired.fq.gz {base_out}/{output2}.clean.fq.gz {base_out}/{output2}.unpaired.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50".format(
+            cmdline = "java -jar /home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar PE -threads 20 {base_in}/{input1}.fastq.gz {base_in}/{input2}.fastq.gz -trimlog {output} {base_out}/{output1}.clean.fq.gz {base_out}/{output1}.unpaired.fq.gz {base_out}/{output2}.clean.fq.gz {base_out}/{output2}.unpaired.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50".format(
                 input1=input1, input2=input2, base_in=base_inpath, base_out=os.path.dirname(log_name),
                 output1=output1, output2=output2,
                 output=log_name)
             os.system(cmdline)
             record_cmdline(cmdline)
         else:
-            cmdline = "java -jar ~/tools/Trimmomatic-0.36/trimmomatic-0.36.jar SE -threads 20 {base_in}/{input1}.fastq.gz -trimlog {output} {base_out}/{input1}.clean.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36".format(
+            cmdline = "java -jar /home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar SE -threads 20 {base_in}/{input1}.fastq.gz -trimlog {output} {base_out}/{input1}.clean.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36".format(
                 input1=input1, base_in=base_inpath, base_out=os.path.dirname(log_name),
                 output=log_name)
             os.system(cmdline)
@@ -352,7 +352,7 @@ class Annovar2(luigi.Task):
 
     def run(self):
         prefix = self.input()[0].path.rpartition('.merged.av')[0]
-        cmdline = "%s/table_annovar.pl %s ~/tools/annovar/humandb/ -buildver %s -protocol %s -operation g,r,r,f,f,f,f,f,f -nastring . --remove --otherinfo --csvout --thread %s --outfile %s --argument '-exonicsplicing -splicing 25',,,,,,,," % (
+        cmdline = "%s/table_annovar.pl %s /home/liaoth/tools/annovar/humandb/ -buildver %s -protocol %s -operation g,r,r,f,f,f,f,f,f -nastring . --remove --otherinfo --csvout --thread %s --outfile %s --argument '-exonicsplicing -splicing 25',,,,,,,," % (
             annovar_pro, prefix + '.merged.av', genome_version, db_names, annovar_thread,
             prefix + '.merged.anno')
         os.system(cmdline)

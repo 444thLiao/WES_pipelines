@@ -99,4 +99,4 @@ if __name__ == '__main__':
         sum_bam_bp(each=each, format='.recal',target='remove dup target mapping',depths=True)
     result_df.to_csv(os.path.join(base_outpath,'quality_accessment_raw.csv'))
     print('completing recal bam(before Calling) base pair count with different depth summary.')
-    import pdb;pdb.set_trace()
+    # import pdb;pdb.set_trace()

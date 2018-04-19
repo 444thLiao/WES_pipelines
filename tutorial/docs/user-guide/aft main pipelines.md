@@ -23,7 +23,7 @@ python aft_pipelines_analysis/aft_pipelines_main.py 1,2,3,4,5,6,7
  2. 根据本地项目文件内的`setting文件`，执行针对somatic SNV的筛选pipelines
  3. 上传筛选后的文件，并**提醒需要**在服务器上执行**以下命令**，然后将`with_info.csv`下载到本地<Br>
   ```
-  python Whole_pipelines/special_fun/add_per_info_into_csv_v2.py -i filtered.csv -o with_info.csv -tb XK-*T/XK-*T.recal_reads.bam -nb XK-*W/XK-*W.recal_reads.bam
+  python aft_pipelines_analysis/add_per_info_into_csv.py -i filtered.csv -o with_info.csv -tb XK-*T/XK-*T.recal_reads.bam -nb XK-*W/XK-*W.recal_reads.bam
   ```
  4. 通过`Whole_pipelines/aft_pipelines_analysis/csv2bed.py`批量的将刚刚下载的`with_info.csv`转成`bed`文件
  5. 利用`bed`文件，并结合`Whole_pipelines/aft_pipelines_analysis/extracted_pos_from_vcf.py`脚本，将多个vcf文件合并并提取出特定的位点，从而生成新的一个vcf文件，该文件集合了Tumor样本和Normal样本的这些位点的基本信息。
