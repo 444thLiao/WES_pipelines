@@ -28,17 +28,17 @@ sudo python ~/data2/pcgr-0.5.3/pcgr.py --input_vcf /home/liaoth/data2/project/18
 script_path = __file__
 dir_script = os.path.dirname(script_path)
 
-from ..setting import *
 if len(sys.argv) == 3 and '/' in sys.argv[1]:
     setting_file = os.path.abspath(sys.argv[1])
     dir_path = os.path.dirname(setting_file)
     sys.path.insert(0, dir_path)
-    exec ('from setting import *')
+    from setting import *
+    import pdb;pdb.set_trace()
 else:
+
     setting_file = ''
-    print(
-        'Please using `aft_pipelines_main.py setting.py 1,2,3,4,5,6,7`.The setting.py should in your project path.')
-    exit()
+    exit('Please using `aft_pipelines_main.py setting.py 1,4,5,6,7,8,9`.The setting.py should in your project path.')
+    from setting import *
 
 # relative input csv path
 somatic_csv = os.path.join(local_project_path, 'somatic/')
@@ -139,10 +139,10 @@ def pack_its_up():
     from simpy_summary import make_summary
     function_csv = make_summary(glob.glob('%s/variants_csv/*.csv' % pack_result))
     function_csv.to_csv('%s/variation_function_stats.csv' % pack_result, index=False)
-    cmdline3 = 'python3 %s/draw_quality_line.py %s' % (dir_script, project_name)
+    # cmdline3 = 'python3 %s/draw_quality_line.py %s' % (dir_script, project_name)
     run(cmdline1)
     run(cmdline2)
-    run(cmdline3)
+    # run(cmdline3)
 
 def remind_text(local_project_path):
     os.chdir(os.path.dirname(local_project_path))

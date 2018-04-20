@@ -83,21 +83,21 @@ def formatter_output(args):
 if __name__ == '__main__':
 
     if SBF:
-        inpath = input('Please Enter the base input path \n')
-        outpath = input('Please Enter the base output path \n')
-        sample_name = input('Please Enter the sample name without normal/tumor sig. Like XK-2.\n')
-        _input1 = input('Please Enter the filename which is normal only analysis from Mutect2 (.csv)\n')
-        _input2 = input('Please Enter the filename which is tumor only analysis from Mutect2 (.csv)\n')
+        inpath = raw_input('Please Enter the base input path \n')
+        outpath = raw_input('Please Enter the base output path \n')
+        sample_name = raw_input('Please Enter the sample name without normal/tumor sig. Like XK-2.\n')
+        _input1 = raw_input('Please Enter the filename which is normal only analysis from Mutect2 (.csv)\n')
+        _input2 = raw_input('Please Enter the filename which is tumor only analysis from Mutect2 (.csv)\n')
         input1 = inpath + '/' + _input1
         input2 = inpath + '/' + _input2
         output1 = outpath + '/' + sample_name + '_mt2_low_F.csv'
         output2 = outpath + '/' + sample_name + '_mt2_NotInNormal.csv'
         pair_filter(input1,input2,output1,output2)
     if SSF:
-        inpath = input('Please Enter the base input path \n')
-        outpath = input('Please Enter the base output path \n')
-        sample_name = input('Please Enter the sample name without normal/tumor sig. Like XK-2.\n')
-        _input1 = input('Please Enter the filename which is pair analysis from Mutect2 (.csv)\n')
+        inpath = raw_input('Please Enter the base input path \n')
+        outpath = raw_input('Please Enter the base output path \n')
+        sample_name = raw_input('Please Enter the sample name without normal/tumor sig. Like XK-2.\n')
+        _input1 = raw_input('Please Enter the filename which is pair analysis from Mutect2 (.csv)\n')
         input1 = inpath + '/' + _input1
         output1 = outpath + '/' + sample_name + '_mt2_filted.csv'
         single_filter(input1,output1,disease= False)
@@ -136,7 +136,7 @@ if __name__ == '__main__':
             scheduler_str = '--local-scheduler'
 
         if analyze_way == 'somatic':
-            RUN_COMMAND = input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
                 cmd_str = "--module SomaticPipelines workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
@@ -144,7 +144,7 @@ if __name__ == '__main__':
                 print 'Exit now.'
                 exit()
         elif analyze_way == 'germline':
-            RUN_COMMAND = input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
 
                 cmd_str ='--module GermlinePipelines workflow --x {args} {sch} --workers {worker}'.format(args=parse_args, worker=str(worker),sch=scheduler_str)
@@ -154,7 +154,7 @@ if __name__ == '__main__':
                 exit()
 
         elif analyze_way == 'somatic_gemini':
-            RUN_COMMAND = input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
                 cmd_str ="--module SomaticPipelines_to_gemini workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
@@ -163,7 +163,7 @@ if __name__ == '__main__':
                 exit()
 
         elif analyze_way == 'germline_gemini':
-            RUN_COMMAND = input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
                 cmd_str = "--module GermlinePipelines_to_gemini workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
@@ -171,7 +171,7 @@ if __name__ == '__main__':
                 print 'Exit now.'
                 exit()
         elif analyze_way == 'somatic_gatk4':
-            RUN_COMMAND = input(
+            RUN_COMMAND = raw_input(
                 """%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
                 cmd_str = "--module SomaticPipelines_gatk4 workflow --x {args} {sch} --workers {worker}".format(
@@ -182,7 +182,7 @@ if __name__ == '__main__':
                 exit()
 
         elif analyze_way == 'germline_gatk4':
-            RUN_COMMAND = input(
+            RUN_COMMAND = raw_input(
                 """%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
                 cmd_str = "--module GermlinePipelines_gatk4 workflow --x {args} {sch} --workers {worker}".format(
@@ -192,7 +192,7 @@ if __name__ == '__main__':
                 print 'Exit now.'
                 exit()
         elif analyze_way == 'test_multi':
-            RUN_COMMAND = input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
+            RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
                 cmd_str = "--module test_multi_SomaticPipelines workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
