@@ -1,6 +1,6 @@
-import re, glob, pandas, os
+import re, glob, pandas, os,argparse
 from pandas import DataFrame as df
-import  tqdm
+import tqdm,sys
 import multiprocessing
 def run(cmd):
     print(cmd)
@@ -31,6 +31,25 @@ def cov_depth(cov_info):
     return df_result
     # return result_depths,result_coverages,depths_name
 
+if __name__ == '__main__':
+    from ..setting import *
+    if len(sys.argv) ==2 and '/' in sys.argv[-1]:
+        setting_file = os.path.abspath(sys.argv[-1])
+        dir_path = os.path.dirname(setting_file)
+        sys.path.insert(0,dir_path)
+        exec('from setting import *')
+    else:
+        print('Please using `run_info_summary.py setting.py`.The setting.py should in your project path.')
+        exit()
 
-pool = multiprocessing.Pool(4)
-pool.map(cov_depth,[_ for _ in glob.glob('/home/liaoth/project/XK_WES/180321/output/XK_result/*/*cov.info') if 'sorted' not in _])
+    num_processes = 4
+    parsing_path = '%s/output/XK_result/*/*cov.info' % base_inpath
+
+    makesure = input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %sIf you make sure, please type y/Y." % (num_processes,'\n'.join(glob.glob(parsing_path))))
+
+    if makesure.strip().upper() == 'Y':
+        pool = multiprocessing.Pool(num_processes)
+        pool.map(cov_depth,[_ for _ in glob.glob(parsing_path) if 'sorted' not in _])
+    else:
+        print('Exiting ......')
+        exit()

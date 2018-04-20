@@ -1,6 +1,4 @@
 from __future__ import print_function
-
-import pandas as pd
 from genes_list import snp_138_common_init,formatt_col
 from filters import *
 import pandas,time
@@ -114,7 +112,6 @@ def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic
     counts.append([len(result)])
 
     remain_idxs = clinvar_filter(result)
-    #import pdb;pdb.set_trace()
     descriptions.append('clinvar_filter')
     counts.append([len(set(list(result.index)).difference(set(remain_idxs)))])
     with open(output_path,'w') as f1:
@@ -124,7 +121,7 @@ def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic
         tmp.loc[:, 'Single'] = [_[0] for _ in counts]
         tmp.loc[:, 'Paired'] = [_[-1] for _ in counts]
         tmp.to_csv(f1)
-    print(descriptions,counts)
+    # print(descriptions,counts)
 
 
 

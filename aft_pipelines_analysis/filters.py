@@ -1,8 +1,9 @@
+from __future__ import print_function
 from Utils import extract2dict
-from pandas import DataFrame as df
+import pandas as pd
 import tqdm
 
-BED_INFO = df.from_csv('/home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed', sep='\t', header=None,
+BED_INFO = pd.read_csv('/home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed', sep='\t', header=None,
                        index_col=None)
 range_list = []
 for idx in tqdm.tqdm(range(BED_INFO.shape[0])):
@@ -16,7 +17,7 @@ def snp_common(snpfile_list,file_df):
 
     return rare_snp
 
-def pass_filter(file_df,_in = ['PASS']):
+def pass_filter(file_df,_in = ('PASS')):
     if 'Otherinfo' not in file_df:
         return 'Wrong Columns'
 
@@ -30,7 +31,7 @@ def pass_filter(file_df,_in = ['PASS']):
             if set(_in).intersection(set(_query.split(';'))):
                 pass_bucket.append(_index)
         except:
-            print _index,'it should be wrong'
+            print(_index,'it should be wrong')
     return pass_bucket
 
 
@@ -76,7 +77,7 @@ def offtarget_filter(file_df):
     subset_df = file_df.loc[~file_df.loc[:, 'Start'].isin(range_list), :]
     return list(subset_df.index)
 
-def clinvar_filter(file_df,not_in = ['benign','likely benign']):
+def clinvar_filter(file_df,not_in = ('benign','likely benign')):
     clin_imp_bucket = []
     for _index in list(file_df.index):
         _info = file_df.loc[_index,'CLINSIG'].lower()
@@ -138,7 +139,7 @@ def gene_filter(file_df,_in = []):
             try:
                 genes = file_df.loc[_idx,'Gene.refGene'].split(';')
             except:
-                print 'get a genes values = '+str(file_df.loc[_idx,'Gene.refGene'])+" which can't be split"
+                print('get a genes values = '+str(file_df.loc[_idx,'Gene.refGene'])+" which can't be split")
                 continue
             for _g in genes:
                 if _g in _in and _idx not in gene_var_bucket:
@@ -147,8 +148,8 @@ def gene_filter(file_df,_in = []):
 
 def gene_filter2(file_path,coverage_info):
     pieces_index = []
-    file_df = df.from_csv(file_path,index_col=False)
-    coverage_df = df.from_csv(coverage_info)
+    file_df = pd.read_csv(file_path,index_col=False)
+    coverage_df = pd.read_csv(coverage_info,index_col=0)
     for _chr in list(set(file_df.loc[:,'Chr'])):
         pieces_index += list(file_df[file_df.loc[:,'Start'].isin(list(coverage_df[coverage_df.loc[:,'Chr']==_chr].loc[:,'Posistion']))].index)
     return list(set(pieces_index))

@@ -2,10 +2,10 @@ from __future__ import print_function
 import sys,os,glob,re
 import pandas as pd
 import tqdm
-import multiprocessing
-Total_pos_num = 65894148
 
-# /home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed
+Total_pos_num = 65894148
+# Base on /home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed
+# If we change this bed file, Total_pos_num needs to change also.
 
 def cal_fastq_bp(fq_path):
     a = os.popen("zgrep -E '^[ACTGN]+$' %s | wc" % fq_path)

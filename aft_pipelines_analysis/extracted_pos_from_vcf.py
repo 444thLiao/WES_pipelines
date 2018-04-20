@@ -43,8 +43,8 @@ def merge_two_vcf(pair_vcf, bed, single_vcf, output_vcf):
 if __name__ == '__main__':
     import sys
 
-    pairedvcf = sys.argv[1]
-    bed_f = sys.argv[2]
+    bed_f = sys.argv[1]
+    pairedvcf = sys.argv[2]
     single_vcf = sys.argv[3]
     output_vcf = sys.argv[4]
     # merge_two_vcf('/home/liaoth/project/180104_XK/gpz_server/vcf_storge/XK-25.mt2.vcf',

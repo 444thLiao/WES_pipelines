@@ -233,7 +233,6 @@ def haplotype_report(haplotype_bucket,output_file):
 
 if __name__ == '__main__':
     import sys
-
     csv_file = sys.argv[1]
     bam_file = sys.argv[2]
     output_file = sys.argv[3]

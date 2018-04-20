@@ -8,7 +8,7 @@ import glob, time
 from main import *
 
 
-def record_cmdline(message, default=base_outpath + '/germline_pipelines.log'):
+def record_cmdline(message, default=base_outpath + '/%s_pipelines.log' % os.path.basename(__file__.replace('.py',''))):
     if os.path.isfile(default):
         with open(default, 'a') as f1:
             f1.write(time.ctime() + ' ' * 4 + message + '\n')
@@ -25,17 +25,17 @@ class QC_trimmomatic(luigi.Task):
     def output(self):
         project_name = pfn(self.PE1, 'project_name')
         output1 = PE1_fmt.format(input=pfn(self.PE1, 'sample_name'))
-        return luigi.LocalTarget(
-            '{base}/{PN}_result/trim_result/{output1}.clean.fq.gz'.format(base=base_outpath, PN=project_name,
-                                                                          output1=output1))
+        return luigi.LocalTarget(os.path.join(trim_fmt.format(base=base_outpath, PN=project_name),
+                                              '/%s.clean.fq.gz' % output1))
 
     def run(self):
         sample_name = pfn(self.PE1, 'sample_name')
         project_name = pfn(self.PE1, 'project_name')
-        log_name = '{base}/{PN}_result/trim_result/{SN}_trimed.log'.format(base=base_outpath, PN=project_name,
-                                                                           SN=sample_name)
-        if not os.path.isdir('{base}/{PN}_result/trim_result'.format(base=base_outpath, PN=project_name)):
-            os.makedirs('{base}/{PN}_result/trim_result'.format(base=base_outpath, PN=project_name))
+        trim_r_path = trim_fmt.format(base=base_outpath, PN=project_name)
+        log_name = os.path.join(trim_r_path, '%s_trimed.log' % sample_name)
+
+        if not os.path.isdir(trim_r_path):
+            os.makedirs(trim_r_path)
 
         input1 = self.PE1
         input2 = self.PE2
@@ -43,15 +43,17 @@ class QC_trimmomatic(luigi.Task):
         output2 = PE2_fmt.format(input=pfn(self.PE2, 'sample_name'))
 
         if input2:
-            cmdline = "java -jar /home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar PE -threads 20 {base_in}/{input1}.fastq.gz {base_in}/{input2}.fastq.gz -trimlog {output} {base_out}/{output1}.clean.fq.gz {base_out}/{output1}.unpaired.fq.gz {base_out}/{output2}.clean.fq.gz {base_out}/{output2}.unpaired.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50".format(
+            cmdline = "java -jar {trimmomatic_jar} PE -threads 20 {base_in}/{input1}{fq_suffix} {base_in}/{input2}{fq_suffix} -trimlog {output} {base_out}/{output1}.clean.fq.gz {base_out}/{output1}.unpaired.fq.gz {base_out}/{output2}.clean.fq.gz {base_out}/{output2}.unpaired.fq.gz ILLUMINACLIP:{trimmomatic_jar_dir}/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50".format(
+                trimmomatic_jar=trimmomatic_jar, trimmomatic_jar_dir=os.path.dirname(trimmomatic_jar),
                 input1=input1, input2=input2, base_in=base_inpath, base_out=os.path.dirname(log_name),
-                output1=output1, output2=output2,
+                output1=output1, output2=output2, fq_suffix=fq_suffix,
                 output=log_name)
             os.system(cmdline)
             record_cmdline(cmdline)
         else:
-            cmdline = "java -jar /home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar SE -threads 20 {base_in}/{input1}.fastq.gz -trimlog {output} {base_out}/{input1}.clean.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36".format(
-                input1=input1, base_in=base_inpath, base_out=os.path.dirname(log_name),
+            cmdline = "java -jar {trimmomatic_jar} SE -threads 20 {base_in}/{input1}{fq_suffix} -trimlog {output} {base_out}/{input1}.clean.fq.gz ILLUMINACLIP:{trimmomatic_jar_dir}/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36".format(
+                trimmomatic_jar=trimmomatic_jar, trimmomatic_jar_dir=os.path.dirname(trimmomatic_jar),
+                input1=input1, base_in=base_inpath, base_out=os.path.dirname(log_name), fq_suffix=fq_suffix,
                 output=log_name)
             os.system(cmdline)
             record_cmdline(cmdline)

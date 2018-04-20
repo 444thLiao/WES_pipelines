@@ -15,7 +15,7 @@ NORMAL_SIG = 'W'
 TUMOR_SIG = 'T'
 ####Pair or not
 Pair_data = True
-###### programe path
+###### server programe path
 vt_pro = '/home/liaoth/tools/vt/vt'
 vep_pro = '/home/liaoth/tools/ensembl-vep-release-91/vep'
 bgzip_pro = '/usr/bin/bgzip'
@@ -24,7 +24,13 @@ gemini_pro = '/usr/local/bin/gemini'
 annovar_pro = '/home/liaoth/tools/annovar'
 gatk_pro = '/tools/GATK-4.0/gatk'
 samtools_pro = '/home/liaoth/.local/bin/bin/samtools'
-
+trimmomatic_jar = '/home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar'
+###### Local setting.
+server_path = 'liaoth@10.10.1.64'
+local_project_path = '/home/liaoth/data2/project/XK_WES/180321/output'
+local_vt_pro = '/home/liaoth/tools/vt/vt'
+pcgr_pro = '/home/liaoth/data2/pcgr-0.5.3'
+local_hg19_ref_db = '/home/liaoth/data2/hg19/ucsc.hg19.fasta'
 #####Paired format.
 PE1_fmt = '{input}_R1'
 PE2_fmt = '{input}_R2'
@@ -66,7 +72,7 @@ output_dir = '{path}/{PN}_result/{SN}'
 output_fmt = '{path}/{PN}_result/{SN}/{SN}'
 somatic_pair_output_fmt = '{path}/{PN}_result/{PairN}_somatic/{PairN}'
 somatic_single_output_fmt = '{path}/{PN}_result/{SN}_somatic/{SN}'
-
+trim_fmt = '{base}/{PN}_result/trim_result'
 
 ## For testing the protype of multithread
 somatic_pair_output_fmt2 = '{path}/{PN}_result/{PairN}_somatic/{PairN}'

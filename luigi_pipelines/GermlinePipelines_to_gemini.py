@@ -2,37 +2,59 @@
 ### Target (Amplicon) sequencing of human exome, germline sample Output a gemini db.
 ### @GPZ-bioinfo, 20170313
 ###############################################################################################
-import luigi
+import luigi,time
+import os
 from special_fun import Add_cov_ino_in_vcf as P_vcf
 
+
+def record_cmdline(message, default=base_outpath + '/%s_pipelines.log' % os.path.basename(__file__.replace('.py',''))):
+    if os.path.isfile(default):
+        with open(default, 'a') as f1:
+            f1.write(time.ctime() + ' ' * 4 + message + '\n')
+    else:
+        with open(default, 'w') as f1:
+            f1.write('{:#^40}'.format('Starting the somatic pipelines.'))
+            f1.write(time.ctime() + ' ' * 4 + message + '\n')
 
 class QC_trimmomatic(luigi.Task):
     PE1 = luigi.Parameter()
     PE2 = luigi.Parameter(default=None)
 
     def output(self):
-        sample_name = pfn(self.PE1, 'sample_name')
         project_name = pfn(self.PE1, 'project_name')
-        return luigi.LocalTarget(
-            '{base}/{PN}_result/trim_result/{SN}_trimed.log'.format(base=base_outpath, PN=project_name, SN=sample_name))
+        output1 = PE1_fmt.format(input=pfn(self.PE1, 'sample_name'))
+        return luigi.LocalTarget(os.path.join(trim_fmt.format(base=base_outpath, PN=project_name),
+                                              '/%s.clean.fq.gz' % output1))
 
     def run(self):
+        sample_name = pfn(self.PE1, 'sample_name')
         project_name = pfn(self.PE1, 'project_name')
-        if os.path.isdir('{base}/{PN}_result/trim_result'.format(base=base_outpath, PN=project_name)) != True:
-            os.makedirs('{base}/{PN}_result/trim_result'.format(base=base_outpath, PN=project_name))
+        trim_r_path = trim_fmt.format(base=base_outpath, PN=project_name)
+        log_name = os.path.join(trim_r_path, '%s_trimed.log' % sample_name)
+
+        if not os.path.isdir(trim_r_path):
+            os.makedirs(trim_r_path)
 
         input1 = self.PE1
         input2 = self.PE2
-        if input2 != None:
-            os.system(
-                "java -jar ~/tools/Trimmomatic-0.36/trimmomatic-0.36.jar PE -threads 10 {base_in}/{input1}.fastq.gz {base_in}/{input2}.fastq.gz -trimlog {output} {base_out}/{input1}.clean.fq.gz {base_out}/{input1}.unpaired.fq.gz {base_out}/{input2}.clean.fq.gz {base_out}/{input2}.unpaired.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50".format(
-                    input1=input1, input2=input2, base_in=base_inpath, base_out=self.output().path.rpartition('/')[0],
-                    output=self.output().path))
+        output1 = PE1_fmt.format(input=pfn(self.PE1, 'sample_name'))
+        output2 = PE2_fmt.format(input=pfn(self.PE2, 'sample_name'))
+
+        if input2:
+            cmdline = "java -jar {trimmomatic_jar} PE -threads 20 {base_in}/{input1}{fq_suffix} {base_in}/{input2}{fq_suffix} -trimlog {output} {base_out}/{output1}.clean.fq.gz {base_out}/{output1}.unpaired.fq.gz {base_out}/{output2}.clean.fq.gz {base_out}/{output2}.unpaired.fq.gz ILLUMINACLIP:{trimmomatic_jar_dir}/adapters/TruSeq3-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50".format(
+                trimmomatic_jar=trimmomatic_jar, trimmomatic_jar_dir=os.path.dirname(trimmomatic_jar),
+                input1=input1, input2=input2, base_in=base_inpath, base_out=os.path.dirname(log_name),
+                output1=output1, output2=output2, fq_suffix=fq_suffix,
+                output=log_name)
+            os.system(cmdline)
+            record_cmdline(cmdline)
         else:
-            os.system(
-                "java -jar ~/tools/Trimmomatic-0.36/trimmomatic-0.36.jar SE -threads 10 {base_in}/{input1}.fastq.gz -trimlog {output} {base_out}/{input1}.clean.fq.gz ILLUMINACLIP:/home/liaoth/tools/Trimmomatic-0.36/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36".format(
-                    input1=input1, base_in=base_inpath, base_out=self.output().path.rpartition('/')[0],
-                    output=self.output().path))
+            cmdline = "java -jar {trimmomatic_jar} SE -threads 20 {base_in}/{input1}{fq_suffix} -trimlog {output} {base_out}/{input1}.clean.fq.gz ILLUMINACLIP:{trimmomatic_jar_dir}/adapters/TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36".format(
+                trimmomatic_jar=trimmomatic_jar, trimmomatic_jar_dir=os.path.dirname(trimmomatic_jar),
+                input1=input1, base_in=base_inpath, base_out=os.path.dirname(log_name), fq_suffix=fq_suffix,
+                output=log_name)
+            os.system(cmdline)
+            record_cmdline(cmdline)
 
 
 class GenerateSam_pair(luigi.Task):
@@ -40,46 +62,54 @@ class GenerateSam_pair(luigi.Task):
 
     def requires(self):
         if Pair_data:
-            input1 = PE1_fmt.format(input=self.sampleID)
-            input2 = PE2_fmt.format(input=self.sampleID)
-            return QC_trimmomatic(PE1=input1, PE2=input2)
+            if not self_adjust_fn:
+                input1 = PE1_fmt.format(input=self.sampleID)
+                input2 = PE2_fmt.format(input=self.sampleID)
+            else:
+                input_list = glob.glob(base_inpath + '/*' + self.sampleID + '*')
+                if filter_str:
+                    input_list = [_i.replace(fq_suffix, '') for _i in input_list if filter_str not in _i]
+                input1 = [_i.replace(fq_suffix, '') for _i in input_list if R1_INDICATOR in _i][0]
+                input2 = [_i.replace(fq_suffix, '') for _i in input_list if R2_INDICATOR in _i][0]
+            return QC_trimmomatic(PE1=os.path.basename(input1), PE2=os.path.basename(input2))
         else:
-            input1 = self.sampleID
-            return QC_trimmomatic(PE1=input1)
+            if not self_adjust_fn:
+                input1 = SE_fmt.format(input=self.sampleID)
+            else:
+                input_list = glob.glob(base_inpath + '/*' + self.sampleID + '*')
+                if filter_str:
+                    input_list = [_i.replace(fq_suffix, '') for _i in input_list if filter_str not in _i]
+                input1 = [_i.replace(fq_suffix, '') for _i in input_list if R1_INDICATOR in _i][0]
+            return QC_trimmomatic(PE1=os.path.basename(input1))
 
     def output(self):
-        sample_name = self.sampleID
+        sample_name = pfn(self.sampleID, 'sample_name')
         project_name = pfn(self.sampleID, 'project_name')
 
         return luigi.LocalTarget(
             output_fmt.format(path=base_outpath, PN=project_name, SN=sample_name) + '.sam')
 
     def run(self):
-        sample_name = self.sampleID
+        sample_name = pfn(self.sampleID, 'sample_name')
         project_name = pfn(self.sampleID, 'project_name')
 
         if Pair_data:
-            input1 = '{base_in}/{pe1_fmt}.clean.fq.gz'.format(base_in=self.input().path.rpartition('/')[0],
-                                                              pe1_fmt=PE1_fmt.format(input=self.sampleID),
-                                                              input=self.sampleID)
-            input2 = '{base_in}/{pe2_fmt}.clean.fq.gz'.format(base_in=self.input().path.rpartition('/')[0],
-                                                              pe2_fmt=PE2_fmt.format(input=self.sampleID),
-                                                              input=self.sampleID)
-            if not os.path.isdir(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name)) == True:
+            input1 = self.input().path
+            input2 = self.input().path.replace(R1_INDICATOR, R2_INDICATOR)
+            if not os.path.isdir(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name)):
                 os.makedirs(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name))
-            os.system(
-                "bwa mem -M -t 20 -k 19 -R '@RG\\tID:{SN}\\tSM:{SN}\\tPL:illumina\\tLB:lib1\\tPU:L001' {REF} {i1} {i2}  > {o}".format(
-                    SN=sample_name, REF=REF_file_path, i1=input1, i2=input2, o=self.output().path))
+            cmdline = "bwa mem -M -t 20 -k 19 -R '@RG\\tID:{SN}\\tSM:{SN}\\tPL:illumina\\tLB:lib1\\tPU:L001' {REF} {i1} {i2} > {o}".format(
+                SN=sample_name, REF=REF_file_path, i1=input1, i2=input2, o=self.output().path)
+            os.system(cmdline)
+            record_cmdline(cmdline)
         else:
-            input1 = '{base_in}/{SE_fmt}.clean.fq.gz'.format(base_in=self.input().path.rpartition('/')[0],
-                                                             SE_fmt=SE_fmt.format(input=self.sampleID),
-                                                             input=self.sampleID)
-            if os.path.isdir(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name)) != True:
+            input1 = self.input().path
+            if not os.path.isdir(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name)):
                 os.makedirs(output_dir.format(path=base_outpath, PN=project_name, SN=sample_name))
-            os.system(
-                "bwa mem -M -t 20 -k 19 -R '@RG\\tID:{SN}\\tSM:{SN}\\tPL:illumina\\tLB:lib1\\tPU:L001' {REF} {i1}  > {o}".format(
-                    SN=sample_name, REF=REF_file_path, i1=input1, o=self.output().path))
-
+            cmdline = "bwa mem -M -t 20 -k 19 -R '@RG\\tID:{SN}\\tSM:{SN}\\tPL:illumina\\tLB:lib1\\tPU:L001' {REF} {i1} > {o}".format(
+                SN=sample_name, REF=REF_file_path, i1=input1, o=self.output().path)
+            os.system(cmdline)
+            record_cmdline(cmdline)
 
 class Convertbam(luigi.Task):
     sampleID = luigi.Parameter()
