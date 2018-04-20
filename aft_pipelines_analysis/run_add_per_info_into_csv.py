@@ -30,28 +30,27 @@ def run_batch(input_path,tb_bam_path,nb_bam_path,NORMAL_SIG,TUMOR_SIG):
         cmdlines.append(cmdline.format(py_exe=python_exe,input=path,output=output,tb=tb,nb=nb))
     return cmdlines
 if __name__ == '__main__':
-    from ..setting import *
     if len(sys.argv) ==2 and '/' in sys.argv[-1]:
         setting_file = os.path.abspath(sys.argv[-1])
         dir_path = os.path.dirname(setting_file)
         sys.path.insert(0,dir_path)
-        exec('from setting import *')
+        from setting import *
     else:
-        print('Please using `run_add_per_info_into_csv.py setting.py`.The setting.py should in your project path.')
-        exit()
+        exit('Please using `run_add_per_info_into_csv.py setting.py`.The setting.py should in your project path.')
+        from setting import *
 
     num_processes = 4
-    input_path = '%s/temp_/*_all_except_AF_depth_PASS.csv' % base_inpath
+    input_path = '%s/temp_/*_all_except_AF_depth_PASS.csv' % os.path.dirname(base_outpath.strip('/'))
     output_path = '{prefix}_all_except_AF_PASS_with_info.csv'
-    tb_bam_path = "%s/output/XK_result/{tb}/{tb}.recal_reads.bam" % base_inpath
-    nb_bam_path = "%s/output/XK_result/{nb}/{nb}.recal_reads.bam" % base_inpath
+    tb_bam_path = "%s/output/XK_result/{tb}/{tb}.recal_reads.bam" % os.path.dirname(base_outpath.strip('/'))
+    nb_bam_path = "%s/output/XK_result/{nb}/{nb}.recal_reads.bam" % os.path.dirname(base_outpath.strip('/'))
 
     cmdlines = run_batch(input_path,tb_bam_path,nb_bam_path,NORMAL_SIG,TUMOR_SIG)
     makesure = input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %sIf you make sure, please type y/Y." % (num_processes,'\n'.join(glob.glob(input_path))))
 
     if makesure.strip().upper() == 'Y':
-        pool = multiprocessing.Pool(num_processes)
-        pool.map(run, cmdlines)
+        for each in cmdlines:
+            run(each)
     else:
         print('Exiting ......')
         exit()

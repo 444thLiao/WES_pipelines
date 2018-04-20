@@ -21,7 +21,7 @@ def parse_samtools_info(long_str,need ):
         if result:
             return result
         else:
-            raise IOError,parsed
+            raise IOError(parsed)
     return None
 
 def write_bp(_path,colname):

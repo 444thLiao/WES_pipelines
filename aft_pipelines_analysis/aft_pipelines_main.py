@@ -33,7 +33,6 @@ if len(sys.argv) == 3 and '/' in sys.argv[1]:
     dir_path = os.path.dirname(setting_file)
     sys.path.insert(0, dir_path)
     from setting import *
-    import pdb;pdb.set_trace()
 else:
 
     setting_file = ''
@@ -57,6 +56,7 @@ def check_path(path):
     if not os.path.isdir(path):
         os.system('mkdir -p %s ' % path)
 
+
 for opath in [somatic_csv, germline_csv, vcf_path, final_csv, filtered_csv, pcgr_output, pack_result]:
     check_path(opath)
 
@@ -66,11 +66,11 @@ def run(cmd):
     os.system(cmd)
 
 
-def download_scp(only_info_summary=True):
+def download_scp(only_info_summary=False):
     if only_info_summary:
         # target cov_info_summary
         cmdline = 'scp %s:%s/%s_result/*/*_cov_summary.info %s' % (
-        server_path, base_outpath, PROJECT_NAME, info_summary_path)
+            server_path, base_outpath, PROJECT_NAME, info_summary_path)
         run(cmdline)
         exit('Finished download all need file.')
     # target csv file
@@ -80,7 +80,7 @@ def download_scp(only_info_summary=True):
     cmdline = 'scp %s:%s/%s_result/*W/*anno.csv %s' % (server_path, base_outpath, PROJECT_NAME, germline_csv)
     run(cmdline)
     # target vcf files
-    cmdline = "scp %s:%s/%s_result/*_somatic/*.mt2.vcf %s" % (server_path,base_outpath, PROJECT_NAME, vcf_path)
+    cmdline = "scp %s:%s/%s_result/*_somatic/*.mt2.vcf %s" % (server_path, base_outpath, PROJECT_NAME, vcf_path)
     run(cmdline)
     cmdline = 'scp %s:%s/%s_result/*W/*merged.vcf %s' % (server_path, base_outpath, PROJECT_NAME, vcf_path)
     run(cmdline)
@@ -102,12 +102,14 @@ def run_pipelines():
         somatic_normal = glob.glob(os.path.join(somatic_csv, normal_name + '.mt2*.csv'))[0]
         somatic_tumor = glob.glob(os.path.join(somatic_csv, tumor_name + '.mt2*.csv'))[0]
         somatic_pair = glob.glob(os.path.join(somatic_csv, each_pair + '.mt2*.csv'))[0]
-        output_file = os.path.join(filtered_csv,'%s_all_except_AF_depth.csv' % each_pair)
+        output_file = os.path.join(filtered_csv, '%s_all_except_AF_depth.csv' % each_pair)
         if not os.path.isdir(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
-        print("filter_pipelines2(%s,%s,%s,%s,%s,pp=[3,4,5,6])" % (germline,somatic_normal,somatic_tumor,somatic_pair,output_file))
-        filter_pipelines2(germline,somatic_normal,somatic_tumor,somatic_pair,output_file,pp=[3,4,5,6])
-        filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair, output_file.replace('except_AF_depth.csv','except_AF_depth_PASS.csv'), pp=[3, 4, 6])
+        print("filter_pipelines2(%s,%s,%s,%s,%s,pp=[3,4,5,6])" % (
+        germline, somatic_normal, somatic_tumor, somatic_pair, output_file))
+        filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair, output_file, pp=[3, 4, 5, 6])
+        filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair,
+                          output_file.replace('except_AF_depth.csv', 'except_AF_depth_PASS.csv'), pp=[3, 4, 6])
 
     print('finished filterered all samples')
 
@@ -144,26 +146,26 @@ def pack_its_up():
     run(cmdline2)
     # run(cmdline3)
 
+
 def remind_text(local_project_path):
     os.chdir(os.path.dirname(local_project_path))
     exec ('from setting import *')
 
-    server_setting_path = os.path.join(local_project_path, 'setting.py')
+    server_setting_path = os.path.join(os.path.dirname(base_outpath.strip('/')), 'setting.py')
     remind_run_command = 'Command you may need to run at server. Listed below:\n'
     remind_run_command += '''
     ##run script in order to generate accessment file. \n\n \
-    /home/liaoth/tools/pysamstats_venv/bin/python2.7 Whole_pipelines/aft_pipelines_analysis/quality_accessment.py %s \n''' % server_setting_path
-    remind_run_command += '''
-    ##run script in order to generate accessment file. \n\n \
-    /home/liaoth/tools/pysamstats_venv/bin/python2.7 Whole_pipelines/aft_pipelines_analysis/quality_accessment.py %s \n''' % server_setting_path
+    /home/liaoth/tools/pysamstats_venv/bin/python2.7 Whole_pipelines/pre_pipelines_analysis/quality_accessment.py %s \n''' % server_setting_path
     remind_run_command += '''
     ##run script which is fetch cov_info from .info file and add it into csvfile. \n\n \
     python2 Whole_pipelines/aft_pipelines_analysis/run_add_per_info_into_csv.py %s \n''' % server_setting_path
     return remind_run_command
 
+
 def draw_coverage_depths():
     from draw_quality_line import draw_coverage_depths as dcd
-    dcd(info_summary_path,NORMAL_SIG,TUMOR_SIG)
+    dcd(info_summary_path, NORMAL_SIG, TUMOR_SIG)
+
 
 if __name__ == '__main__':
     args = sys.argv[-1].split(',')
@@ -191,7 +193,9 @@ if __name__ == '__main__':
         run_pipelines()
     if '5' in args:
         fetch_path = input(
-            '''You need to upload these file to server to cal coverage based on bam files and run comands like this.\n\n Recommanded upload path: {project_path}/temp_/ .Or you will need to modify script 'run_add_per_info_into_csv.py'.\nAfter you finished, please pass the path with regular expression files to this.''')
+            '''You need to upload these file to server to cal coverage based on bam files and run comands like this.\n\n Recommanded upload path: \nscp {filtered_csv}/*_all_except_AF_depth_PASS.csv {server_path}:{project_path}/temp_/. \nOr you will need to modify script 'run_add_per_info_into_csv.py'.\nAfter you finished, please pass the path with regular expression files to this.'''.format(
+                project_path=os.path.dirname(base_outpath.strip('/')), filtered_csv=filtered_csv,
+                server_path=server_path))
         if input('Make sure your path is %s . Y/y' % fetch_path).upper() == 'Y':
             download_filtered_files(fetch_path)
         else:

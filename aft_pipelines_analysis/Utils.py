@@ -1,4 +1,4 @@
-#from __future__ import absolute_import
+from __future__ import print_function
 import pandas, os, re
 def extract2dict(Otherinfo):
     _info = Otherinfo.split('\t')
@@ -17,7 +17,7 @@ def count_indel(file_df):
         elif file_df.loc[_index,'Alt'] == '-' and file_df.loc[_index,'Ref'] >=1:
             count.append('del')
         else:
-            print file_df.loc[_index,'Alt'],file_df.loc[_index,'Ref']
+            print(file_df.loc[_index,'Alt'],file_df.loc[_index,'Ref'])
     result = {}
     for _i in set(count):
         result[_i] = count.count(_i)
@@ -53,7 +53,7 @@ def construct_pos_list(bed_df,coord = 0):
             intervals = range(start,)
         else:
             #print 'cor need to be 0/1, meaning the corordinate you use.'
-            raise SyntaxError,'cor need to be 0/1, meaning the corordinate you use.'
+            raise SyntaxError('cor need to be 0/1, meaning the corordinate you use.')
         pos_info_dict[chr] += intervals
     return pos_info_dict
 
@@ -74,7 +74,7 @@ def cal_fun(bam_path, bed_file):
     try:
         bamfile = pysam.AlignmentFile(bam_path, 'rb')
     except:
-        print "bamefile need to cal doesn't exist"
+        print("bamefile need to cal doesn't exist")
         raise IOError
 
     fastafile = pysam.FastaFile(filename=REF_file_path)
@@ -124,7 +124,7 @@ def cal_fun(bam_path, bed_file):
             pass
     with open(bam_path.partition('.')[0]+'_cov.info', 'w') as f1:
         f1.write(result)
-    print 'Cal cov info complete'
+    print('Cal cov info complete')
 
 
 def pfn(filename, wanted):
@@ -144,18 +144,18 @@ def pfn(filename, wanted):
         storged_dict['sample_name'] = re.findall(sample_name_pattern, filename)[0]
         storged_dict['sample_ID'] = re.findall(sample_ID_pattern, filename)[0]
     except:
-        print 'wrong pattern, please check it.\nOri file name: %s' % (filename)
+        print('wrong pattern, please check it.\nOri file name: %s' % (filename))
     if 'R' in filename:
         try:
             storged_dict['pair_ID'] = re.findall(pair_ID_pattern, filename)[0]
         except:
-            print 'wrong pattern, please check it.\nOri file name: %s' % (filename)
+            print('wrong pattern, please check it.\nOri file name: %s' % (filename))
     if ((NORMAL_SIG in filename) or (TUMOR_SIG in filename)) and (NORMAL_SIG and TUMOR_SIG):
         try:
             storged_dict['mt2_for'] = re.findall(mt2_for_pattern, filename)[0]
             storged_dict['pair_name'] = re.findall(pair_name_pattern, filename)[0]
         except:
-            print 'wrong pattern, please check it.\nOri file name: %s' % (filename)
+            print('wrong pattern, please check it.\nOri file name: %s' % (filename))
     else:
         if input_pair_tuple:
             # self input mt2 pair name, for some you can't strip simple N/T out to form pair result prefix file.
