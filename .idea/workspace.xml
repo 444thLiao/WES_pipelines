@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ac9014f3-6c1d-4050-98c0-c090bfec497b" name="Default" comment="revised some bug.">
-      <change beforePath="$PROJECT_DIR$/Workbook.md" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/tutorial/docs/user-guide/output file.md" afterPath="$PROJECT_DIR$/tutorial/docs/user-guide/output file.md" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -39,7 +39,7 @@
       <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1440">
+            <state relative-caret-position="0">
               <caret line="89" column="52" lean-forward="false" selection-start-line="89" selection-start-column="52" selection-end-line="89" selection-end-column="52" />
               <folding />
             </state>
@@ -84,7 +84,7 @@
         <entry file="file://$PROJECT_DIR$/pre_pipelines_analysis/quality_accessment.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="540">
-              <caret line="30" column="13" lean-forward="true" selection-start-line="30" selection-start-column="13" selection-end-line="30" selection-end-column="13" />
+              <caret line="30" column="13" lean-forward="false" selection-start-line="30" selection-start-column="13" selection-end-line="30" selection-end-column="13" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -172,7 +172,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/haplotype/search_possible.py" />
         <option value="$PROJECT_DIR$/special_fun/simpy_summary.py" />
         <option value="$PROJECT_DIR$/special_fun/csv2bed.py" />
         <option value="$USER_HOME$/Desktop/building_promoter_lib_v2.py" />
@@ -223,6 +222,7 @@
         <option value="$PROJECT_DIR$/aft_pipelines_analysis/simpy_summary.py" />
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/pre_pipelines_analysis/quality_accessment.py" />
+        <option value="$PROJECT_DIR$/tutorial/docs/user-guide/output file.md" />
       </list>
     </option>
   </component>
@@ -280,6 +280,24 @@
               <item name="Whole_pipelines" type="b2602c69:ProjectViewProjectNode" />
               <item name="Whole_pipelines" type="462c0819:PsiDirectoryNode" />
               <item name="pre_pipelines_analysis" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Whole_pipelines" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Whole_pipelines" type="462c0819:PsiDirectoryNode" />
+              <item name="tutorial" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Whole_pipelines" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Whole_pipelines" type="462c0819:PsiDirectoryNode" />
+              <item name="tutorial" type="462c0819:PsiDirectoryNode" />
+              <item name="docs" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Whole_pipelines" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Whole_pipelines" type="462c0819:PsiDirectoryNode" />
+              <item name="tutorial" type="462c0819:PsiDirectoryNode" />
+              <item name="docs" type="462c0819:PsiDirectoryNode" />
+              <item name="user-guide" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Whole_pipelines" type="b2602c69:ProjectViewProjectNode" />
@@ -787,13 +805,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/README/GATKv4_command.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-26">
-          <caret line="80" column="3" lean-forward="false" selection-start-line="80" selection-start-column="3" selection-end-line="80" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/luigi_pipelines/GermlinePipelines.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="881">
@@ -1079,7 +1090,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1440">
+        <state relative-caret-position="0">
           <caret line="89" column="52" lean-forward="false" selection-start-line="89" selection-start-column="52" selection-end-line="89" selection-end-column="52" />
           <folding />
         </state>
@@ -1101,10 +1112,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tutorial/docs/user-guide/output file.md">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="1" column="0" lean-forward="true" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/pre_pipelines_analysis/quality_accessment.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="540">
-          <caret line="30" column="13" lean-forward="true" selection-start-line="30" selection-start-column="13" selection-end-line="30" selection-end-column="13" />
+          <caret line="30" column="13" lean-forward="false" selection-start-line="30" selection-start-column="13" selection-end-line="30" selection-end-column="13" />
           <folding>
             <element signature="e#0#37#0" expanded="true" />
           </folding>
