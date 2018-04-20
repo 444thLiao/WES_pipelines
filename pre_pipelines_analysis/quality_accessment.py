@@ -9,9 +9,10 @@ Total_pos_num = 65894148
 
 def cal_fastq_bp(fq_path):
     a = os.popen("zgrep -E '^[ACTGN]+$' %s | wc" % fq_path)
-    b = a.read()
-    b = b.split(' ')
-    return int(b[2].replace('\n',''))-int(b[1])
+    b = a.read().strip()
+    b = [_ for _ in b.split(' ') if _]
+    result = int(b[2].replace('\n',''))-int(b[1])
+    return result
 
 def parse_samtools_info(long_str,need ):
     info_list = long_str.split('\n')
