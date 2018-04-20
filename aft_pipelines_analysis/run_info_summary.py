@@ -32,15 +32,13 @@ def cov_depth(cov_info):
     # return result_depths,result_coverages,depths_name
 
 if __name__ == '__main__':
-    from ..setting import *
     if len(sys.argv) ==2 and '/' in sys.argv[-1]:
         setting_file = os.path.abspath(sys.argv[-1])
         dir_path = os.path.dirname(setting_file)
         sys.path.insert(0,dir_path)
-        exec('from setting import *')
+        from setting import *
     else:
-        print('Please using `run_info_summary.py setting.py`.The setting.py should in your project path.')
-        exit()
+        exit('Please using `run_info_summary.py setting.py`.The setting.py should in your project path.')
 
     num_processes = 4
     parsing_path = '%s/output/XK_result/*/*cov.info' % base_inpath

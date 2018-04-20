@@ -6,15 +6,15 @@ import luigi,time
 import os
 from special_fun import Add_cov_ino_in_vcf as P_vcf
 
-
 def record_cmdline(message, default=base_outpath + '/%s_pipelines.log' % os.path.basename(__file__.replace('.py',''))):
     if os.path.isfile(default):
         with open(default, 'a') as f1:
             f1.write(time.ctime() + ' ' * 4 + message + '\n')
     else:
         with open(default, 'w') as f1:
-            f1.write('{:#^40}'.format('Starting the somatic pipelines.'))
+            f1.write('{:#^40}'.format('Starting the %s pipelines.' % os.path.basename(__file__.replace('.py',''))))
             f1.write(time.ctime() + ' ' * 4 + message + '\n')
+
 
 class QC_trimmomatic(luigi.Task):
     PE1 = luigi.Parameter()

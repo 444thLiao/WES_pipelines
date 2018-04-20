@@ -7,14 +7,13 @@ import luigi
 import glob, time
 from main import *
 
-
 def record_cmdline(message, default=base_outpath + '/%s_pipelines.log' % os.path.basename(__file__.replace('.py',''))):
     if os.path.isfile(default):
         with open(default, 'a') as f1:
             f1.write(time.ctime() + ' ' * 4 + message + '\n')
     else:
         with open(default, 'w') as f1:
-            f1.write('{:#^40}'.format('Starting the somatic pipelines.'))
+            f1.write('{:#^40}'.format('Starting the %s pipelines.' % os.path.basename(__file__.replace('.py',''))))
             f1.write(time.ctime() + ' ' * 4 + message + '\n')
 
 
