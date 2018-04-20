@@ -40,17 +40,17 @@ if __name__ == '__main__':
         from setting import *
 
     num_processes = 4
-    input_path = '%s/temp_/*_all_except_AF_depth_PASS.csv' % os.path.dirname(base_outpath.strip('/'))
+    input_path = '%s/temp_/*_all_except_AF_depth_PASS.csv' % os.path.dirname(base_outpath.rstrip('/'))
     output_path = '{prefix}_all_except_AF_PASS_with_info.csv'
-    tb_bam_path = "%s/output/XK_result/{tb}/{tb}.recal_reads.bam" % os.path.dirname(base_outpath.strip('/'))
-    nb_bam_path = "%s/output/XK_result/{nb}/{nb}.recal_reads.bam" % os.path.dirname(base_outpath.strip('/'))
+    tb_bam_path = "%s/output/XK_result/{tb}/{tb}.recal_reads.bam" % os.path.dirname(base_outpath.rstrip('/'))
+    nb_bam_path = "%s/output/XK_result/{nb}/{nb}.recal_reads.bam" % os.path.dirname(base_outpath.rstrip('/'))
 
     cmdlines = run_batch(input_path,tb_bam_path,nb_bam_path,NORMAL_SIG,TUMOR_SIG)
     makesure = input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %sIf you make sure, please type y/Y." % (num_processes,'\n'.join(glob.glob(input_path))))
 
     if makesure.strip().upper() == 'Y':
-        for each in cmdlines:
-            run(each)
+        pool = multiprocessing.Pool(num_processes)
+        pool.map(run, cmdlines)
     else:
         print('Exiting ......')
         exit()

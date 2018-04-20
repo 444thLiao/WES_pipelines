@@ -151,7 +151,7 @@ def remind_text(local_project_path):
     os.chdir(os.path.dirname(local_project_path))
     exec ('from setting import *')
 
-    server_setting_path = os.path.join(os.path.dirname(base_outpath.strip('/')), 'setting.py')
+    server_setting_path = os.path.join(os.path.dirname(base_outpath.rstrip('/')), 'setting.py')
     remind_run_command = 'Command you may need to run at server. Listed below:\n'
     remind_run_command += '''
     ##run script in order to generate accessment file. \n\n \
@@ -194,7 +194,7 @@ if __name__ == '__main__':
     if '5' in args:
         fetch_path = input(
             '''You need to upload these file to server to cal coverage based on bam files and run comands like this.\n\n Recommanded upload path: \nscp {filtered_csv}/*_all_except_AF_depth_PASS.csv {server_path}:{project_path}/temp_/. \nOr you will need to modify script 'run_add_per_info_into_csv.py'.\nAfter you finished, please pass the path with regular expression files to this.'''.format(
-                project_path=os.path.dirname(base_outpath.strip('/')), filtered_csv=filtered_csv,
+                project_path=os.path.dirname(base_outpath.rstrip('/')), filtered_csv=filtered_csv,
                 server_path=server_path))
         if input('Make sure your path is %s . Y/y' % fetch_path).upper() == 'Y':
             download_filtered_files(fetch_path)
