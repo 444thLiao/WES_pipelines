@@ -127,6 +127,7 @@ class Convertbam(luigi.Task):
         samtools_pro, REF_file_path, self.input()[0].path, self.output().path)
         os.system(cmdline)
         record_cmdline(cmdline)
+        # remove sam file by creating a empty file in case redo this step.
         cmdline = "touch %s" % self.input()[0].path
         os.system(cmdline)
         record_cmdline(cmdline)
@@ -146,6 +147,10 @@ class sorted_bam(luigi.Task):
         os.system(cmdline)
         record_cmdline(cmdline)
         cmdline = '%s index -@ 30 %s' % (samtools_pro, self.output().path)
+        os.system(cmdline)
+        record_cmdline(cmdline)
+        # remove bam file by creating a empty file in case redo this step.
+        cmdline = "touch %s" % self.input()[0].path
         os.system(cmdline)
         record_cmdline(cmdline)
 

@@ -1,7 +1,6 @@
 import pysam
 import pandas as pd
-import argparse,time
-import tqdm
+import argparse
 import tqdm
 """
 confirmed 2018.03.19
