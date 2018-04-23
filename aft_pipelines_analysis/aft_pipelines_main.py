@@ -159,6 +159,13 @@ def remind_text(local_project_path):
     remind_run_command += '''
     ##run script which is fetch cov_info from .info file and add it into csvfile. \n\n \
     python2 Whole_pipelines/aft_pipelines_analysis/run_add_per_info_into_csv.py %s \n''' % server_setting_path
+    remind_run_command += '''
+    for each in %s/XK_result/*/*sorted.bam; do python %s/../pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done
+    ''' % (base_outpath,dir_script,bed_file_path,REF_file_path)
+    remind_run_command += '''
+    for each in %s/XK_result/*/*recal_reads.bam; do python %s/../pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done
+    ''' % (base_outpath,dir_script,bed_file_path,REF_file_path)
+
     return remind_run_command
 
 
@@ -192,12 +199,14 @@ if __name__ == '__main__':
         print('Runing filtered pipelines. Output all samples filtered file into %s' % filtered_csv)
         run_pipelines()
     if '5' in args:
-        fetch_path = input(
+
+        t_path = '%s/temp_/*_with_info.csv' % os.path.dirname(base_outpath.rstrip('/'))
+        print(
             '''You need to upload these file to server to cal coverage based on bam files and run comands like this.\n\n Recommanded upload path: \nscp {filtered_csv}/*_all_except_AF_depth_PASS.csv {server_path}:{project_path}/temp_/. \nOr you will need to modify script 'run_add_per_info_into_csv.py'.\nAfter you finished, please pass the path with regular expression files to this.'''.format(
                 project_path=os.path.dirname(base_outpath.rstrip('/')), filtered_csv=filtered_csv,
                 server_path=server_path))
-        if input('Make sure your path is %s . Y/y' % fetch_path).upper() == 'Y':
-            download_filtered_files(fetch_path)
+        if input('Make sure your path is %s. Y/y' % t_path).upper() == 'Y':
+            download_filtered_files(t_path)
         else:
             print("Wrong input. Maybe you need to stop.Doesn't downlaod any things")
     if '6' in args:

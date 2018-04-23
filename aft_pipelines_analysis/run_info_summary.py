@@ -41,9 +41,9 @@ if __name__ == '__main__':
         exit('Please using `run_info_summary.py setting.py`.The setting.py should in your project path.')
 
     num_processes = 4
-    parsing_path = '%s/output/XK_result/*/*cov.info' % base_inpath
+    parsing_path = '%s/XK_result/*/*cov.info' % base_outpath
 
-    makesure = input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %sIf you make sure, please type y/Y." % (num_processes,'\n'.join(glob.glob(parsing_path))))
+    makesure = input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %s\n\nIf you make sure, please type y/Y." % (num_processes,'\n'.join(glob.glob(parsing_path))))
 
     if makesure.strip().upper() == 'Y':
         pool = multiprocessing.Pool(num_processes)
