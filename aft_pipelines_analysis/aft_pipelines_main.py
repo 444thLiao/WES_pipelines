@@ -106,7 +106,7 @@ def run_pipelines():
         if not os.path.isdir(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
         print("filter_pipelines2(%s,%s,%s,%s,%s,pp=[3,4,5,6])" % (
-        germline, somatic_normal, somatic_tumor, somatic_pair, output_file))
+            germline, somatic_normal, somatic_tumor, somatic_pair, output_file))
         filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair, output_file, pp=[3, 4, 5, 6])
         filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair,
                           output_file.replace('except_AF_depth.csv', 'except_AF_depth_PASS.csv'), pp=[3, 4, 6])
@@ -155,19 +155,16 @@ def remind_text(local_project_path):
     remind_run_command = 'Command you may need to run at server. Listed below:\n'
     remind_run_command += '''
     ##run script in order to generate accessment file. \n\n \
-    /home/liaoth/tools/pysamstats_venv/bin/python2.7 %s/pre_pipelines_analysis/quality_accessment.py %s \n''' % (os.path.dirname(dir_script),server_setting_path)
-    remind_run_command += '#' * 50 +'\n'
+    /home/liaoth/tools/pysamstats_venv/bin/python2.7 %s/pre_pipelines_analysis/quality_accessment.py %s \n''' % (server_script_path, server_setting_path)
+    remind_run_command += '#' * 50 + '\n'
     remind_run_command += 'run cal_cov script to get coverage info from different bam files.'
-    remind_run_command += '''
-    for each in %s/XK_result/*/*sorted.bam; do python %s/pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done
-    ''' % (base_outpath,os.path.dirname(dir_script),bed_file_path,REF_file_path)
-    remind_run_command += '''
-    for each in %s/XK_result/*/*recal_reads.bam; do python %s/pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done
-    ''' % (base_outpath,os.path.dirname(dir_script),bed_file_path,REF_file_path)
+    remind_run_command += '''for each in %s/XK_result/*/*sorted.bam; do python %s/pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done''' % (
+    base_outpath, server_script_path, bed_file_path, REF_file_path)
+    remind_run_command += '''for each in %s/XK_result/*/*recal_reads.bam; do python %s/pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done''' % (
+    base_outpath, server_script_path, bed_file_path, REF_file_path)
     remind_run_command += '''
     ##run script which is fetch cov_info from .info file and add it into csvfile. \n\n \
     python2 Whole_pipelines/aft_pipelines_analysis/run_add_per_info_into_csv.py %s \n''' % server_setting_path
-
     return remind_run_command
 
 
@@ -210,7 +207,8 @@ if __name__ == '__main__':
         if str(input('Make sure your path is %s. Y/y' % t_path)).upper() == 'Y':
             download_filtered_files(t_path)
         else:
-            print("Wrong input. Maybe you need to stop.Doesn't downlaod any things")
+            print(
+                "Wrong input. Maybe you need to stop. If is 'underfind' error, you may need to use python3 utill you figure it out. Or you can directly ask author.")
     if '6' in args:
         print("*" * 50)
         print("Turning final csv file into bed.")

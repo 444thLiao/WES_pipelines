@@ -25,6 +25,7 @@ annovar_pro = '/home/liaoth/tools/annovar'
 gatk_pro = '/tools/GATK-4.0/gatk'
 samtools_pro = '/home/liaoth/.local/bin/bin/samtools'
 trimmomatic_jar = '/home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar'
+server_script_path = '/home/liaoth/tools/Whole_pipelines'
 ###### Local setting.
 server_path = 'liaoth@10.10.1.64'
 local_project_path = '/home/liaoth/data2/project/XK_WES/180321/output'
