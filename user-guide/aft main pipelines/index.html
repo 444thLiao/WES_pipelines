@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>After main pipelines - Whole_pipelines</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "After main pipelines";
+    var mkdocs_page_input_path = "user-guide/aft main pipelines.md";
+    var mkdocs_page_url = "/user-guide/aft main pipelines/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Whole_pipelines</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">User Guide</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../setting/">Setting</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../main pipelines/">Main pipelines</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">After main pipelines</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#after-main-pipelines">After main pipelines</a></li>
+    
+
+    <li class="toctree-l3"><a href="#_1">提醒内容</a></li>
+    
+
+    <li class="toctree-l3"><a href="#_2">入口文件结构</a></li>
+    
+
+    <li class="toctree-l3"><a href="#_3">具体模块的步骤</a></li>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../output file/">Output file</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../special need/">Special Need</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../api/">API</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../todo/">TODO</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Whole_pipelines</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>User Guide &raquo;</li>
+        
+      
+    
+    <li>After main pipelines</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="after-main-pipelines">After main pipelines</h1>
+<p>基本上说，其实是<a href="../main pipelines#main-pipelines-description">main pipelines description</a>的第3步开始的往后的流程。</p>
+<p>由于流程的复杂，所以我同样的写了一个较为简单的主要入口文件，并且写成了一个可交互的脚本，所以会涉及到许多需要输入/确认的地方。</p>
+<pre><code class="shell">python aft_pipelines_analysis/aft_pipelines_main.py setting.py 1,4,5,6,7,8,9
+python aft_pipelines_analysis/aft_pipelines_main.py setting.py 2,3
+</code></pre>
+
+<p><code>setting.py</code>应使用在服务器上跑流程时用到的配置文件<Br>
+唯一需要输入的参数即<code>1,4,5,6,7,8,9</code>，由于流程的复杂，所以用最简单的方法进行了模块化的操作，以便在分析到一半时需要重新单独执行某个模块。</p>
+<p><strong>值得注意的是，模块2,3，是为了绘制coverage-depth的工作所设计的，所以需要单独输入以便不与其它流程冲突</strong></p>
+<h1 id="_1">提醒内容</h1>
+<p>正如上文所说，在运行<code>aft_pipelines_main.py</code>的时候会有大量的文本作为提示性的输出。其中涉及到的脚本包括：</p>
+<pre><code>quality_accessment.py
+cal_Cov_script_version.py
+run_add_per_info_into_csv.py
+</code></pre>
+
+<p>未来需要将其列入主流程中，或者与主流程的入口<code>main.py</code>进行绑定。<a href="../../todo"><strong>TODO</strong></a></p>
+<h1 id="_2">入口文件结构</h1>
+<ol>
+<li>配置参数，包括了文件目录结构以及存储地址</li>
+<li>上述各模块的函数化部分</li>
+<li><code>main</code>主要执行步骤与判断</li>
+</ol>
+<h1 id="_3">具体模块的步骤</h1>
+<ol>
+<li>根据项目名称，到服务器上下载所有的csv和vcf，到指定的文件夹</li>
+<li>下载所有的<code>_cov_summary.info</code>文件</li>
+<li>通过2步骤下载的文件进行绘制，绘制后弹出绘制的散点图的交互网页</li>
+<li>根据本地项目文件内的<code>setting文件</code>，执行针对somatic SNV的筛选pipelines</li>
+<li>上传筛选后的文件，并<strong>提醒需要</strong>在服务器上执行<strong>以下命令</strong>，然后将<code>with_info.csv</code>下载到本地<Br>
+  <code>python aft_pipelines_analysis/add_per_info_into_csv.py -i filtered.csv -o with_info.csv -tb XK-*T/XK-*T.recal_reads.bam -nb XK-*W/XK-*W.recal_reads.bam</code></li>
+<li>通过<code>Whole_pipelines/aft_pipelines_analysis/csv2bed.py</code>批量的将刚刚下载的<code>with_info.csv</code>转成<code>bed</code>文件</li>
+<li>利用<code>bed</code>文件，并结合<code>Whole_pipelines/aft_pipelines_analysis/extracted_pos_from_vcf.py</code>脚本，将多个vcf文件合并并提取出特定的位点，从而生成新的一个vcf文件，该文件集合了Tumor样本和Normal样本的这些位点的基本信息。</li>
+<li>通过这个vcf,直接进行<code>pcgr</code>所指定的流程，最后可生成一个文件夹，内有基因组的网页报告。</li>
+<li>对以上流程生成的文件合理的组合，生成<strong>routine analysis</strong>的结果</li>
+</ol>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../output file/" class="btn btn-neutral float-right" title="Output file">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../main pipelines/" class="btn btn-neutral" title="Main pipelines"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../main pipelines/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../output file/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/require.js"></script>
+      <script src="../../search/search.js"></script>
+
+</body>
+</html>

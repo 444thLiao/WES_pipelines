@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    
+    <url>
+     <loc>/</loc>
+     <lastmod>2018-04-23</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+        
+    <url>
+     <loc>/user-guide/setting/</loc>
+     <lastmod>2018-04-23</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>/user-guide/main pipelines/</loc>
+     <lastmod>2018-04-23</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>/user-guide/aft main pipelines/</loc>
+     <lastmod>2018-04-23</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>/user-guide/output file/</loc>
+     <lastmod>2018-04-23</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>/user-guide/special need/</loc>
+     <lastmod>2018-04-23</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    
+
+    
+    <url>
+     <loc>/api/</loc>
+     <lastmod>2018-04-23</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/todo/</loc>
+     <lastmod>2018-04-23</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+</urlset>

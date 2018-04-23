@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Main pipelines - Whole_pipelines</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Main pipelines";
+    var mkdocs_page_input_path = "user-guide/main pipelines.md";
+    var mkdocs_page_url = "/user-guide/main pipelines/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> Whole_pipelines</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">User Guide</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../setting/">Setting</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Main pipelines</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#main-pipelines-description">main pipelines description</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#germline-snv-calling">germline SNV Calling</a></li>
+        
+            <li><a class="toctree-l4" href="#somatic-snv-calling">Somatic SNV Calling</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../aft main pipelines/">After main pipelines</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../output file/">Output file</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../special need/">Special Need</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../api/">API</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../../todo/">TODO</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">Whole_pipelines</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>User Guide &raquo;</li>
+        
+      
+    
+    <li>Main pipelines</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="main-pipelines-description">main pipelines description</h1>
+<ol>
+<li>Download 数据</li>
+<li>编辑合适的setting.py</li>
+<li>完成germline、somatic流程</li>
+<li>通过扩增试剂盒的<strong>bed文件</strong>进行统计流程中的<strong>bam文件</strong>的深度信息(.info)。</li>
+<li>从深度信息(.info)统计得到评估文件(assessment file)，作为初步评估该次测序好坏的结果。</li>
+<li>从深度信息(.info)计算得到用以绘制 coverage-depths的散点图的数据。</li>
+<li>Download <code>csv、vcf</code>结果文件。</li>
+<li>本地进行自定义的筛选流程</li>
+<li>将数量大大减少的输出结果(筛选后.csv)上传到服务器，利用服务器的内存+未下载的深度信息(.info)，使用脚本将其深度信息加入<code>csv文件</code>生成<code>with_info.csv</code></li>
+<li>重新将<code>with_info.csv</code>下载到本地</li>
+<li>并将其转化成<code>bed文件</code></li>
+<li>根据<code>bed</code>文件从<code>vcf文件</code>中提取位点，并且需要合并多个vcf文件。</li>
+<li>合并后使用<code>pcgr</code>的流程将其整理成网页报告</li>
+<li>额外的分析要求(haplotype分析、拷贝数热图展现)</li>
+<li>整理成常规的分析结构</li>
+</ol>
+<h2 id="germline-snv-calling">germline SNV Calling</h2>
+<p>基本的命令较为简单，只要使用以下命令即可开始germline calling的流程。</p>
+<p><code>sample_Id</code> 可以是本次样本的Id，最简的ID名称即可，如<code>S0707_09A_CHG030266-hunhewenku-XK-32T-AGGCAGAA_L007_R2.fastq.gz</code> 应该写成<code>XK-32T</code>，至于R1、R2会自己进行检测。<Br>
+如果本次的样本过多，可以使用<code>auto_detect</code>，自动进行检测输入地址下的所有测序文件。更多的参数可见<a href="../../../api#mainpy">main.py API</a></p>
+<pre><code>python Whole_pipelines/main.py -A germline_gatk4 -arg {sample_Id} -set setting.py
+</code></pre>
+
+<h2 id="somatic-snv-calling">Somatic SNV Calling</h2>
+<p>与germline SNV Calling的操作相似，所以直接使用以下命令开始somatic calling的流程。<strong>值得注意的是，由于somatic和germline的流程有部分重合，请勿同时跑同样本的两个流程</strong></p>
+<p>更多的参数可见<a href="../../../api#mainpy">main.py API</a></p>
+<pre><code>python Whole_pipelines/main.py -A somatci_gatk4 -arg {sample_Id} -set setting.py
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../aft main pipelines/" class="btn btn-neutral float-right" title="After main pipelines">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../setting/" class="btn btn-neutral" title="Setting"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../setting/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../aft main pipelines/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/require.js"></script>
+      <script src="../../search/search.js"></script>
+
+</body>
+</html>
