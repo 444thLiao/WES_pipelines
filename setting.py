@@ -32,6 +32,7 @@ local_project_path = '/home/liaoth/data2/project/XK_WES/180321/output'
 local_vt_pro = '/home/liaoth/tools/vt/vt'
 pcgr_pro = '/home/liaoth/data2/pcgr-0.5.3'
 local_hg19_ref_db = '/home/liaoth/data2/hg19/ucsc.hg19.fasta'
+local_bed_file = '/home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed'
 #####Paired format.
 PE1_fmt = '{input}_R1'
 PE2_fmt = '{input}_R2'

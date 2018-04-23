@@ -25,7 +25,7 @@ sudo python ~/data2/pcgr-0.5.3/pcgr.py --input_vcf /home/liaoth/data2/project/18
 ## 18/03/23
 ## absoulte path
 
-script_path = __file__
+script_path = os.path.abspath(__file__)
 dir_script = os.path.dirname(script_path)
 
 if len(sys.argv) == 3 and '/' in sys.argv[1]:
@@ -230,8 +230,9 @@ if __name__ == '__main__':
             else:
                 normal_name = each_pair + NORMAL_SIG
                 tumor_name = each_pair + TUMOR_SIG
-            cmdline = 'python %s/extracted_pos_from_vcf.py %s %s %s %s' % (
+            cmdline = 'python %s/extracted_pos_from_vcf.py %s %s %s %s %s' % (
                 dir_script,
+                server_setting_path,
                 bed_file,
                 '%s/%s.mt2.vcf' % (vcf_path, each_pair),
                 '%s/%s.mt2.vcf' % (vcf_path, tumor_name),

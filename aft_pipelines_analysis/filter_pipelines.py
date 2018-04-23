@@ -1,6 +1,5 @@
 from __future__ import print_function
 from genes_list import snp_138_common_init,formatt_col
-from filters import *
 import pandas,time
 import argparse
 import os, sys, glob
@@ -150,6 +149,7 @@ if __name__ == '__main__':
     import_path = os.path.dirname(setting_file)
     sys.path.insert(0, import_path)
     from setting import *
+    from filters import *
     ############################################################
     samples_ids = [os.path.basename(i).split('.mt2.merged.')[0] for i in glob.glob(os.path.join(csv_output_dir, 'somatic', '*.csv'))]
     pair_name = [i for i in samples_ids if NORMAL_SIG not in i and TUMOR_SIG not in i]

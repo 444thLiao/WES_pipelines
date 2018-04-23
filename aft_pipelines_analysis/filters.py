@@ -3,7 +3,7 @@ from Utils import extract2dict
 import pandas as pd
 import tqdm
 
-BED_INFO = pd.read_csv('/home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed', sep='\t', header=None,
+BED_INFO = pd.read_csv(local_bed_file, sep='\t', header=None,
                        index_col=None)
 range_list = []
 for idx in tqdm.tqdm(range(BED_INFO.shape[0])):
