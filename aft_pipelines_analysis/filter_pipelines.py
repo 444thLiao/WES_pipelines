@@ -3,7 +3,7 @@ from genes_list import snp_138_common_init,formatt_col
 import pandas,time
 import argparse
 import os, sys, glob
-def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic,output_path,pp=[0,2,3,4,5,6]):
+def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic,output_path,pp=[0,2,3,4,5,6],snp_path='/home/liaoth/data/humandb/snp138Common.name.txt'):
     '''
     created at 2017-06-26 advances XK filter pipelines
 
@@ -15,7 +15,7 @@ def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic
     :return:
     '''
     t1 = time.time()
-    snp138_common = snp_138_common_init()
+    snp138_common = snp_138_common_init(snp_path)
     TUMOR_S = pd.read_csv(tumor_somatic, index_col=None)
     TUMOR_P = pd.read_csv(pair_somatic, index_col=None)
     NORMAL_S = pd.read_csv(normal_somatic, index_col=None)
@@ -71,7 +71,7 @@ def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic
         descriptions.append('Coverage')
         counts.append([len(TUMOR_S_filtered_index),len(TUMOR_P_filtered_index)])
     if 3 in pp:
-        TUMOR_S_filtered_index = snp_common(snp138_common, TUMOR_S.loc[TUMOR_S_filtered_index+special_S_index, :])
+        TUMOR_S_filtered_index = snp_common(snp138_common, TUMOR_S.loc[TUMOR_S_filtered_index+special_S_index, :],)
         TUMOR_P_filtered_index = snp_common(snp138_common, TUMOR_P.loc[TUMOR_P_filtered_index+special_P_index, :])
         print('finish snp common filter.....')
         descriptions.append('Snp_common')
@@ -168,8 +168,8 @@ if __name__ == '__main__':
         if not os.path.isdir(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
         print("filter_pipelines2(%s,%s,%s,%s,%s,pp=[3,4,5,6])" % (germline,somatic_normal,somatic_tumor,somatic_pair,output_file))
-        filter_pipelines2(germline,somatic_normal,somatic_tumor,somatic_pair,output_file,pp=[3,4,5,6])
-        filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair, output_file.replace('except_AF_depth.csv','except_AF_depth_PASS.csv'), pp=[3, 4, 6])
+        filter_pipelines2(germline,somatic_normal,somatic_tumor,somatic_pair,output_file,pp=[3,4,5,6],snp_path=snp138_common_file)
+        filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair, output_file.replace('except_AF_depth.csv','except_AF_depth_PASS.csv'), pp=[3, 4, 6],snp_path=snp138_common_file)
         # print()
 
 

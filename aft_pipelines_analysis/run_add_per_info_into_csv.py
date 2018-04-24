@@ -46,7 +46,7 @@ if __name__ == '__main__':
     nb_bam_path = "%s/output/XK_result/{nb}/{nb}.recal_reads.bam" % os.path.dirname(base_outpath.rstrip('/'))
 
     cmdlines = run_batch(input_path,tb_bam_path,nb_bam_path,NORMAL_SIG,TUMOR_SIG)
-    makesure = input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %sIf you make sure, please type y/Y." % (num_processes,'\n'.join(glob.glob(input_path))))
+    makesure = str(input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %sIf you make sure, please type y/Y." % (num_processes,'\n'.join(glob.glob(input_path)))))
 
     if makesure.strip().upper() == 'Y':
         pool = multiprocessing.Pool(num_processes)

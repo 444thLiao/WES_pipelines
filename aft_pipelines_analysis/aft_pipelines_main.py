@@ -57,7 +57,7 @@ def check_path(path):
         os.system('mkdir -p %s ' % path)
 
 
-for opath in [somatic_csv, germline_csv, vcf_path, final_csv, filtered_csv, pcgr_output, pack_result]:
+for opath in [somatic_csv, germline_csv, vcf_path, final_csv, filtered_csv, pcgr_output, pack_result,info_summary_path]:
     check_path(opath)
 
 
@@ -163,6 +163,10 @@ def remind_text(local_project_path):
     remind_run_command += '''for each in %s/XK_result/*/*recal_reads.bam; do python %s/pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done''' % (
     base_outpath, server_script_path, bed_file_path, REF_file_path)
     remind_run_command += '''
+        ##run script in order to generate accessment file. \n\n \
+        python %s/aft_pipelines_analysis/run_info_summary.py %s \n''' % (
+    server_script_path, server_setting_path)
+    remind_run_command += '''
     ##run script which is fetch cov_info from .info file and add it into csvfile. \n\n \
     python2 Whole_pipelines/aft_pipelines_analysis/run_add_per_info_into_csv.py %s \n''' % server_setting_path
     return remind_run_command
@@ -171,6 +175,7 @@ def remind_text(local_project_path):
 def draw_coverage_depths():
     from draw_quality_line import draw_coverage_depths as dcd
     dcd(info_summary_path, NORMAL_SIG, TUMOR_SIG)
+    print('finish drawing.')
 
 
 if __name__ == '__main__':
@@ -186,7 +191,7 @@ if __name__ == '__main__':
 
     server_setting_path = os.path.join(local_project_path, 'setting.py')
     if '1' in args:
-        if input('Download ? Y/y').upper() == 'Y':
+        if str(input('Download ? Y/y')).upper() == 'Y':
             download_scp()
         else:
             print('wrong command,just pass.')

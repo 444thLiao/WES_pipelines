@@ -5,6 +5,8 @@ import pandas as pd
 import sys
 
 def draw_coverage_depths(dir_info,NORMAL_SIG,TUMOR_SIG):
+    draw_data = []
+    layout = dict(yaxis=dict(exponentformat='e'))
     all_info = list(glob.glob(dir_info+'/*cov_summary.info'))
     for data_path in all_info:
         data_df = pd.read_csv(data_path,sep='\t',index_col=0)

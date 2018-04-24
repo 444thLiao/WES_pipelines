@@ -43,7 +43,10 @@ if __name__ == '__main__':
     num_processes = 4
     parsing_path = '%s/XK_result/*/*cov.info' % base_outpath
 
-    makesure = input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %s\n\nIf you make sure, please type y/Y." % (num_processes,'\n'.join(glob.glob(parsing_path))))
+    makesure = str(input("If your `num of processes >4`, Please be careful of memory. It may stalled whole server.\nUsing %s processes, prepare process listing files: \n . %s\n\nIf you make sure, please type y/Y." %
+                         (num_processes,'\n'.join(glob.glob(parsing_path)))
+                         )
+                   )
 
     if makesure.strip().upper() == 'Y':
         pool = multiprocessing.Pool(num_processes)
