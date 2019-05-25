@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pysam
 import pandas as pd
 import argparse
@@ -8,12 +9,12 @@ Function to cal each base info from given bed file and bam file.
 :type Cal_Function
 """
 def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'):
-    print 'Start loading required file......'
+    print('Start loading required file......')
     bed_file = pd.read_csv(bed_file, index_col=False, sep='\t', header=None)
     try:
         bamfile = pysam.AlignmentFile(bam_path, 'rb')
     except:
-        print "bamefile need to cal doesn't exist"
+        print("bamefile need to cal doesn't exist")
         raise IOError
 
     fastafile = pysam.FastaFile(filename=REF_file)
@@ -24,7 +25,7 @@ def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'
     f1.flush()
     #define columns.
     #print 'Loading required file. using %d' % (time.time()-t1)
-    print 'STARTING TO ITERATION. '
+    print('STARTING TO ITERATION. ')
     count = 0
     pro_count = 0
     if debug_:
@@ -70,7 +71,7 @@ def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'
             pass
     # with open(bam_path.partition('.')[0]+'_cov.info', 'w') as f1:
     #     f1.write(result)
-    print 'Cal cov info complete.total base is ',count,bam_path
+    print('Cal cov info complete.total base is ',count,bam_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

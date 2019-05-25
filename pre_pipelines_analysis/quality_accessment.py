@@ -75,7 +75,7 @@ if __name__ == '__main__':
     sys.path.insert(0,dir_path)
     from setting import *
 
-    field_names = ['Sample ID','raw data/bp','clean data/bp','genome mapping','target mapping',
+    field_names = ['Sample ID','raw data/bp','clean data/bp','target mapping',
                    'remove dup target mapping','dup','target_length/bp','avg_depth','>1X','>5X','>10X','>20X']
     filter_str = '_somatic'
 
@@ -98,6 +98,7 @@ if __name__ == '__main__':
     for each in tqdm.tqdm(bam_path):
         print(each)
         sum_bam_bp(each=each, format='.recal',target='remove dup target mapping',depths=True)
+    result_df.loc[:,'target_length/bp'] = Total_pos_num
     result_df.to_csv(os.path.join(base_outpath,'quality_accessment_raw.csv'))
     print('completing recal bam(before Calling) base pair count with different depth summary.')
     # import pdb;pdb.set_trace()

@@ -26,4 +26,4 @@ if __name__ == '__main__':
                     input1=input1, input2=input2, base_in=base_inpath, base_out=path_output_dir,
                     output=path_output_dir + input1.replace('_L001_R1_001','_trimed.log')))
 
-for each in `ls / home / liaoth / project / XK_WES / 180309_all / output / XK_result / * / *.recal_reads.bam`; do python ~ / tools / Whole_pipelines / pre_pipelines_analysis / cal_Cov_script_version.py -b $each -B / home / liaoth / data_bank / XK_WES / Sureselect_V6_COSMIC_formal.bed -r / home / db_public / hg19 / ucsc.hg19.fasta & done
+for each in `ls /home/liaoth/project/XK_WES/180309_all/ output / XK_result / * / *.recal_reads.bam`; do python ~ / tools / Whole_pipelines / pre_pipelines_analysis / cal_Cov_script_version.py -b $each -B / home / liaoth / data_bank / XK_WES / Sureselect_V6_COSMIC_formal.bed -r / home / db_public / hg19 / ucsc.hg19.fasta & done

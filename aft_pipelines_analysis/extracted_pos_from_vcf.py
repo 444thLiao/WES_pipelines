@@ -1,12 +1,13 @@
+from __future__ import print_function
 import os
 
-bcftools_path = '/home/liaoth/tools/bcftools-1.3.1/bcftools'
+bcftools_path = '/home/liaoth/tools/bcftools/bcftools'
 
 def prepare_vcf(vcf_path):
     if not vcf_path.endswith('.gz'):
         os.system('`which bgzip` %s' % vcf_path)
         vcf_path += '.gz'
-        print vcf_path
+        print(vcf_path)
         os.system('%s index %s' % (bcftools_path,vcf_path))
     else:
         if not os.path.isfile(vcf_path + '.csi'):
@@ -25,7 +26,7 @@ def merge_two_vcf(pair_vcf, bed, single_vcf, output_vcf):
                                      SM=pair_sample_name)
     cmdline2 = formatted_line.format(vcf=single_vcf.replace('.gz', '') + '.gz', bed=bed, output=output_vcf + '2',
                                      SM=single_sample_name)
-    print cmdline1, cmdline2
+    print(cmdline1, cmdline2)
     os.system(cmdline1)
     os.system(cmdline2)
 

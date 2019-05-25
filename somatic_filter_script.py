@@ -5,9 +5,13 @@ from pandas import DataFrame as df
 import argparse
 
 
-def single_filter(file_path, output_path='', keep={'Func.refGene': ['exonic', 'exonic;splicing']},
-                  drop={'ExonicFunc.refGene': ['synonymous SNV']}, other_Info={'6': 'PASS'}, disease=True,
-                  output_file=True, tlod_filter_complement=False):
+def single_filter(file_path, output_path='',
+                  keep={'Func.refGene': ['exonic', 'exonic;splicing']},
+                  drop={'ExonicFunc.refGene': ['synonymous SNV']},
+                  other_Info={'6': 'PASS'},
+                  disease=True,
+                  output_file=True,
+                  tlod_filter_complement=False):
     # input after annovar file
     file_df = df.from_csv(file_path, index_col=False)
     #print 'first first:',len(file_df)

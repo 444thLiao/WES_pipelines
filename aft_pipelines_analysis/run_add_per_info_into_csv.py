@@ -3,7 +3,7 @@ import glob
 import os,sys
 import multiprocessing
 
-script_path = __file__
+script_path = os.path.abspath(__file__)
 ############################################################
 python_exe = '/home/liaoth/tools/pysamstats_venv/bin/python'
 
@@ -24,7 +24,7 @@ def run_batch(input_path,tb_bam_path,nb_bam_path,NORMAL_SIG,TUMOR_SIG):
         else:
             normal_name = each_pair + NORMAL_SIG
             tumor_name = each_pair + TUMOR_SIG
-        output = output_path.format(prefix=path.split('_all_except')[0])
+        output = output_path.format(prefix=path.split('_all_except')[0].replace('filtered_file','final_output'))
         tb = tb_bam_path.format(tb=tumor_name)
         nb = nb_bam_path.format(nb=normal_name)
         cmdlines.append(cmdline.format(py_exe=python_exe,input=path,output=output,tb=tb,nb=nb))
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         from setting import *
 
     num_processes = 4
-    input_path = '%s/temp_/*_all_except_AF_depth_PASS.csv' % os.path.dirname(base_outpath.rstrip('/'))
+    input_path = '%s/pipelines_result/filtered_file/*_all_except_AF_depth_PASS.csv' % os.path.dirname(base_outpath.rstrip('/'))
     output_path = '{prefix}_all_except_AF_PASS_with_info.csv'
     tb_bam_path = "%s/output/XK_result/{tb}/{tb}.recal_reads.bam" % os.path.dirname(base_outpath.rstrip('/'))
     nb_bam_path = "%s/output/XK_result/{nb}/{nb}.recal_reads.bam" % os.path.dirname(base_outpath.rstrip('/'))

@@ -138,7 +138,9 @@ if __name__ == '__main__':
         if analyze_way == 'somatic':
             RUN_COMMAND = raw_input("""%s\n\n If you sure, please input Y/y.""" % formatter_output(parse_args.split(',')[0]))
             if RUN_COMMAND.upper() == 'Y':
-                cmd_str = "--module SomaticPipelines workflow --x {args} {sch} --workers {worker}".format(args=parse_args, worker=str(worker),sch=scheduler_str)
+                cmd_str = "--module SomaticPipelines workflow --x {args} {sch} --workers {worker}".format(args=parse_args,
+                                                                                                          worker=str(worker),
+                                                                                                          sch=scheduler_str)
                 luigi_run(cmd_str.split(' '))
             else:
                 print 'Exit now.'
