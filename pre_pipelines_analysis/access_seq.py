@@ -1,20 +1,25 @@
-import re, glob, pandas, os
+import  glob, pandas, os
 from pandas import DataFrame as df
 import time, tqdm
 import threading
+
+
 def cov_depth(cov_info):
     """
     cal the info from cal_Cov.py and produce a plot
     :param cov_info:
     :return:
     """
-    raw_info = pandas.read_csv(cov_info,sep='\t',index_col=False,engine='python')
+    raw_info = pandas.read_csv(cov_info,
+                               sep='\t',
+                               index_col=False,
+                               engine='python')
     raw_info.base = list(raw_info.loc[:, ['A', 'T', 'C', 'G']].sum(1))
 
     result_depths = []
     result_coverages = []
     depths_name = []
-    for _i in xrange(1,101):
+    for _i in range(1,101):
         _coverage = len(raw_info[raw_info.base >= _i*10])
         _depth = _i*10
         depths_name.append('%sX' % str(_depth))
@@ -27,17 +32,13 @@ def cov_depth(cov_info):
     return df_result
     # return result_depths,result_coverages,depths_name
 
-t1 = time.clock()
-tmp = cov_depth('~/project/XK_WES/180309_all/output/XK_result/XK-25T/XK-25T_cov.info')
-print(time.clock()-t1)
-
 def cov_depth_to_file(cov_info, output_each_pos=False):
     """
     cal the info from cal_Cov.py and produce a plot
     :param cov_info:
     :return:
     """
-    tmp = open(cov_info).xreadlines()
+    tmp = open(cov_info).readlines()
     total_lines = int(os.popen('wc -l %s' % cov_info).read().split(' ')[0])
 
     bases = ['A', 'T', 'C', 'G']
@@ -48,14 +49,14 @@ def cov_depth_to_file(cov_info, output_each_pos=False):
     count = 0
     pbar = ProgressBar()
     pbar = pbar.start()
-    for line in tmp:
+    for row in tmp:
         if count == 0:
-            idx = [line.split('\t').index(_) for _ in bases]
+            idx = [row.split('\t').index(_) for _ in bases]
         else:
-            each_pos.append(sum([int(line.split('\t')[_]) for _ in idx]))
-            pos_list.append(line.split('\t')[2])
-            gene_list.append(line.split('\t')[0].replace('ref|', ''))
-            chr_list.append(line.split('\t')[1])
+            each_pos.append(sum([int(row.split('\t')[_]) for _ in idx]))
+            pos_list.append(row.split('\t')[2])
+            gene_list.append(row.split('\t')[0].replace('ref|', ''))
+            chr_list.append(row.split('\t')[1])
         count += 1
         pbar.update(int((float(count) / (total_lines)) * 100))
     if output_each_pos:
@@ -88,7 +89,7 @@ def format_cov_depth_heatmap(info_file,genes,block=15):
         piece_df = piece_df.sort_values('pos')
 
         init_blocks_ave_depth = []
-        for _b in xrange(0,block):
+        for _b in range(0,block):
             block_start = total_len/block * _b
             block_next = total_len / block * (_b+1)
             if _b != block-1:
@@ -122,7 +123,7 @@ if __name__ == '__main__':
     for path in glob.glob('/home/liaoth/project/180104_XK/output/XK_result/*/*_cov.info'):
         if 'sorted' not in path and not os.path.isfile(path.replace('_cov.info', '_cov_summary.info')):
             t = threading.Thread(target=cov_depth_to_file, kwargs={'cov_info': path})
-            print 'processing......', path
+            print('processing......', path)
             t.setDaemon(True)
             t.start()
     sum_sig_genes = ['AKT1', 'AKT2', 'AKT3', 'ARID1A', 'ARID1B', 'ARID2', 'ASCL4', 'ATM', 'BRAF', 'CDKN2A', 'COBL',
@@ -137,6 +138,6 @@ if __name__ == '__main__':
         if 'sorted' not in path and not os.path.isfile(path.replace('_cov.info', '_cov_gene.heatmap')):
             t = threading.Thread(target=format_cov_depth_heatmap, kwargs={'info_file': path, 'genes': sum_sig_genes})
             t.setName('deal with %s' % os.path.basename(path).split('_cov')[0])
-            print 'processing......', path
+            print('processing......', path)
             t.setDaemon(True)
             t.start()

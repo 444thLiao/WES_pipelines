@@ -3,9 +3,12 @@ Basic function for parse input sample name to formatted format in order to impor
 :type Parse_Function
 """
 import itertools
+import os
 
 import pandas as pd
-import os
+
+import setting as config
+
 
 class fileparser():
     def __init__(self, filename):
@@ -30,20 +33,19 @@ class fileparser():
 
     def germline_pair(self):
         t_dict = self.df.to_dict(orient='index')
-        for k,d in t_dict.items():
+        for k, d in t_dict.items():
             d["SampleID"] = k
         return t_dict
 
     def somatic_pair(self):
         """
-
         :return: nid + tid: {Normal:{info}},{Tumor:{info}},{nid + tid}
         """
         pair_dict = {}
         if self.is_somatic():
             for source_name in set(self.df.source_name):
                 # todo : use group by
-                sub_df = self.df.loc[self.df.source_name==source_name, :]
+                sub_df = self.df.loc[self.df.source_name == source_name, :]
                 if len(sub_df.shape) == 1:
                     # only one source_name occur
                     # it may not a tumor-normal pair experiment, pass it
@@ -68,6 +70,32 @@ class fileparser():
         else:
             raise Exception("No somatic/pair samples detected")
 
+    def get_output_file_path(self, odir):
+        sample_dict = self.germline_pair()
+        for sample_id, infodict in sample_dict.items():
+            sample_name = infodict.get("SampleID", '')
+            project_name = infodict.get("project_name", "")
+            infodict["trim_R1"] = os.path.join(config.trim_fmt, "{PE1_id}.clean.fq.gz").format(
+                base=odir,
+                PN=project_name,
+                PE1_id=sample_name + "_R1")
+            infodict["trim_R2"] = os.path.join(config.trim_fmt, "{PE2_id}.clean.fq.gz").format(
+                base=odir,
+                PN=project_name,
+                PE2_id=sample_name + "_R2")
+            # infodict["sam"] = config.output_fmt.format(
+            #     path=odir,
+            #                          PN=project_name,
+            #                          SN=sample_name) + '.sam'
+            infodict["sorted_bam"] = config.output_fmt.format(
+                path=odir,
+                PN=project_name,
+                SN=sample_name) + '_sorted.bam'
+            infodict["recal_bam"] = config.output_fmt.format(
+                path=odir,
+                PN=project_name,
+                SN=sample_name) + '.recal_reads.bam'
+        return sample_dict
 
 def validate_df(df):
     template_file = os.path.join(os.path.dirname(__file__),

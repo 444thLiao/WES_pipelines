@@ -8,6 +8,7 @@ confirmed 2018.03.19
 Function to cal each base info from given bed file and bam file.
 :type Cal_Function
 """
+
 def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'):
     print('Start loading required file......')
     bed_file = pd.read_csv(bed_file, index_col=False, sep='\t', header=None)
@@ -30,7 +31,8 @@ def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'
     pro_count = 0
     if debug_:
         import pdb;pdb.set_trace()
-    for i in tqdm.tqdm(range(bed_file.shape[0]), total=bed_file.shape[0]):
+    for i in tqdm.tqdm(range(bed_file.shape[0]),
+                       total=bed_file.shape[0]):
         Chr, start, end, Gene_name = bed_file.iloc[i, [0, 1, 2, 3]].values
         start = min(int(start), int(end))
         end = max(int(start), int(end))
@@ -86,8 +88,11 @@ if __name__ == '__main__':
     ref_path = args.ref_fasta
     debug_ = args.debug_
     if ref_path:
-        cal_fun(bam_path=bam_path,bed_file=bed_path,REF_file=ref_path)
+        cal_fun(bam_path=bam_path,
+                bed_file=bed_path,
+                REF_file=ref_path)
     else:
-        cal_fun(bam_path=bam_path, bed_file=bed_path)
+        cal_fun(bam_path=bam_path,
+                bed_file=bed_path)
 
 

@@ -1,8 +1,8 @@
-from __future__ import print_function
 import sys,os,glob,re
 import pandas as pd
+from collections import defaultdict
 import tqdm
-
+from parse_file_name import fileparser
 Total_pos_num = 65894148
 # Base on /home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed
 # If we change this bed file, Total_pos_num needs to change also.
@@ -25,28 +25,9 @@ def parse_samtools_info(long_str,need ):
             raise IOError(parsed)
     return None
 
-def write_bp(_path,colname):
-    for r1 in _path:
-        if 'R1' not in r1:
-            continue
-        else:
-            if r1.count('R1') != 1:
-                import pdb;pdb.set_trace()
-            r2 = r1.replace('R1','R2')
-            r1_bp = cal_fastq_bp(r1)
-            r2_bp = cal_fastq_bp(r2)
-            sample_n = [_ for _ in sample_names if _ in r1]
-            if not sample_n:
-                import pdb;pdb.set_trace()
-            elif len(sample_n) == 1:
-                sample_n = sample_n[0]
-            else:
-                sample_n = sorted(sample_n)[-1]
-            result_df.loc[sample_n,colname] = r1_bp + r2_bp
-
-def sum_bam_bp(each,format,target,depths=False):
+def sum_bam_bp(each,target,idx_name,depths=False):
     if os.path.isfile(each.partition('.')[0] + '_cov.info'):
-        tmp = open(each.partition('.')[0] + '_cov.info').xreadlines()
+        tmp = open(each.partition('.')[0] + '_cov.info').readlines()
         bases = ['A','T','C','G']
         each_pos = []
         count = 0
@@ -59,7 +40,6 @@ def sum_bam_bp(each,format,target,depths=False):
         print('iterations all row in cov.info')
         total_base_count = sum(each_pos)
         avg_depth = total_base_count / float(count)
-        idx_name = os.path.basename(each).split(format)[0]
         result_df.loc[idx_name, target] = total_base_count
         if depths:
             result_df.loc[idx_name,'>1X'] = len([_ for _ in each_pos if _ > 1])
@@ -70,35 +50,57 @@ def sum_bam_bp(each,format,target,depths=False):
             result_df.loc[idx_name, 'avg_depth'] = avg_depth
 
 if __name__ == '__main__':
-    setting_file = sys.argv[-1]
-    dir_path = os.path.dirname(setting_file)
-    sys.path.insert(0,dir_path)
-    from setting import *
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i',dest='input_tab', required=True,type=str)
+    parser.add_argument('-o', dest='output_dir', required=True, type=str)
+    args = parser.parse_args()
 
-    field_names = ['Sample ID','raw data/bp','clean data/bp','target mapping',
-                   'remove dup target mapping','dup','target_length/bp','avg_depth','>1X','>5X','>10X','>20X']
+    tab_file = os.path.abspath(args.input_tab)
+    odir = os.path.abspath(args.output_dir)
+    df = fileparser(tab_file)
+
+    field_names = ['Sample ID',
+                   'raw data/bp',
+                   'clean data/bp',
+                   'target mapping',
+                   'remove dup target mapping',
+                   'dup',
+                   'target_length/bp',
+                   'avg_depth',
+                   '>1X',
+                   '>5X',
+                   '>10X',
+                   '>20X']
     filter_str = '_somatic'
 
-    sample_names = [os.path.basename(_i) for _i in glob.glob(
-        os.path.join(base_outpath, '{PN}_result/{PN}*[{n}{t}]*'.format(PN=PROJECT_NAME, n=NORMAL_SIG, t=TUMOR_SIG))) if filter_str not in _i]
-    raw_path = [[_k for _k in glob.glob(os.path.join(base_inpath, '*%s*R1*.gz' % i ) ) if filter_str not in _k ][0] for i in sample_names]
-    trim_path = glob.glob(os.path.join(base_outpath, '%s_result/trim_result/*.clean.fq.gz' % PROJECT_NAME))
-    result_df = pd.DataFrame(index=sample_names,columns=field_names[1:])
-    print('start processing......')
-    write_bp(trim_path,'clean data/bp')
-    print('completing clean data base pair count.')
-    raw_path += [_.replace('R1','R2') for _ in raw_path]
-    write_bp(raw_path, 'raw data/bp')
-    print('completing raw data base pair count.')
-    bam_path = glob.glob(os.path.join(base_outpath, '%s_result/*/*_sorted.bam' % PROJECT_NAME))
-    for each in tqdm.tqdm(bam_path):
-        sum_bam_bp(each,format='_sorted',target='target mapping')
-    print('completing sorted bam(aligned bam) base pair count.')
-    bam_path = glob.glob(os.path.join(base_outpath, '%s_result/*/*.recal_reads.bam' % PROJECT_NAME))
-    for each in tqdm.tqdm(bam_path):
-        print(each)
-        sum_bam_bp(each=each, format='.recal',target='remove dup target mapping',depths=True)
+    sample_names = df.get_attr("sample_name")
+    raw_path_R1 = df.get_attr("path_R1")
+    raw_path_R2 = df.get_attr("path_R2")
+    sample_dict = df.get_output_file_path(odir)
+
+    result_df = pd.DataFrame(index=sample_names, columns=field_names[1:])
+    access_files = defaultdict(dict)
+    for sid in sample_names:
+        access_files[sid]["raw"] = raw_path_R1[sid]
+        access_files[sid]["trim"] = sample_dict[sid]["trim_R1"]
+        access_files[sid]["sorted_bam"] = sample_dict[sid]["sorted_bam"]
+        access_files[sid]["recal_bam"] = sample_dict[sid]["recal_bam"]
+
+
+    for sid,temp_dict in access_files.items():
+
+        num_raw_reads = cal_fastq_bp(temp_dict["raw"])
+        num_trimmed_reads = cal_fastq_bp(temp_dict["trim"])
+        sum_bam_bp(temp_dict["sorted_bam"], target='target mapping',
+                   idx_name=sid)
+        sum_bam_bp(temp_dict["recal_bam"],
+                   target='remove dup target mapping',
+                   idx_name=sid,
+                   depths=True)
+        result_df.loc[sid,'raw data/bp'] = num_raw_reads
+        result_df.loc[sid, 'clean data/bp'] = num_trimmed_reads
+
     result_df.loc[:,'target_length/bp'] = Total_pos_num
-    result_df.to_csv(os.path.join(base_outpath,'quality_accessment_raw.csv'))
+    result_df.to_csv(os.path.join(odir,'quality_accessment_raw.csv'))
     print('completing recal bam(before Calling) base pair count with different depth summary.')
-    # import pdb;pdb.set_trace()

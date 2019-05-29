@@ -18,10 +18,16 @@ class main_entry(luigi.Task):
 
     def requires(self):
         df = fileparser(self.tab)
-
-        if str(self.analysis_type).lower() == 'germline':
-            from GermlinePipelines import new_Annovar2
-
+        antype = str(self.analysis_type).lower()
+        if antype in ['germline', "germline_gatk4", "germline_gemini"]:
+            if antype == "germline":
+                from GermlinePipelines import new_Annovar2
+            elif antype == "germline_gatk4":
+                from GermlinePipelines_gatk4 import new_Annovar2
+            elif antype == "germline_gemini":
+                from GermlinePipelines_to_gemini import new_Annovar2
+            else:
+                raise Exception()
             tasks = []
             for sample_name, sample_info in df.germline_pair().items():
                 sample_info["odir"] = self.odir
@@ -30,20 +36,31 @@ class main_entry(luigi.Task):
                                           dry_run=self.dry_run))
             return tasks
 
-        elif str(self.analysis_type).lower() == 'somatic':
-            from SomaticPipelines import new_Annovar2
+        elif antype in ['somatic', "somatic_gatk4", "somatic_gemini"]:
+            if antype == "germline":
+                from SomaticPipelines import new_Annovar2
+            elif antype == "germline_gatk4":
+                from SomaticPipelines_gatk4 import new_Annovar2
+            elif antype == "germline_gemini":
+                from SomaticPipelines_to_gemini import new_Annovar2
+            else:
+                raise Exception()
 
             tasks = []
-            for sample_name, sample_info in df.somatic_pair().items():
-                # sample_name must unique
-                sample_info["odir"] = self.odir
-                sample_info["log_path"] = self.log_path
-                tasks.append(new_Annovar2(infodict=sample_info,
+            for combine_name, pair_info in df.somatic_pair().items():
+                pair_info["odir"] = self.odir
+                pair_info["log_path"] = self.log_path
+                pair_info["Normal"]["odir"] = self.odir
+                pair_info["Normal"]["log_path"] = self.log_path
+                pair_info["Tumor"]["odir"] = self.odir
+                pair_info["Tumor"]["log_path"] = self.log_path
+                tasks.append(new_Annovar2(infodict=pair_info,
                                           dry_run=self.dry_run))
             return tasks
+        else:
+            raise Exception
 
-        elif str(self.analysis_type).lower() == 'somatic_gemini':
-            pass
+
 if __name__ == '__main__':
     luigi.run()
 

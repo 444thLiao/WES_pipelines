@@ -1,3 +1,4 @@
+import os
 from os.path import dirname
 
 import luigi
@@ -12,17 +13,27 @@ class QC_trimmomatic(luigi.Task):
     dry_run = luigi.BoolParameter(default=False)
 
     def output(self):
+        project_name = self.infodict.get("project_name", "")
         odir = self.infodict.get("odir", "")
+        odir = config.trim_fmt.format(base=odir,
+                                      PN=project_name)
         sample_name = self.infodict.get("SampleID", '')
+
         if self.PE2:
-            ofile_name1 = "{base_out}/{PE1_id}.clean.fq.gz".format(base_out=odir,
-                                                                   PE1_id=sample_name + "_R1")
-            ofile_name2 = "{base_out}/{PE2_id}.clean.fq.gz".format(base_out=odir,
-                                                                   PE2_id=sample_name + "_R2")
+            ofile_name1 = os.path.join(config.trim_fmt, "{PE_id}.clean.fq.gz").format(
+                base=odir,
+                PN=project_name,
+                PE1_id=sample_name + "_R1")
+            ofile_name2 = os.path.join(config.trim_fmt, "{PE_id}.clean.fq.gz").format(
+                base=odir,
+                PN=project_name,
+                PE1_id=sample_name + "_R2")
             return [luigi.LocalTarget(ofile_name1), luigi.LocalTarget(ofile_name2)]
         else:
-            ofile_name1 = "{base_out}/{SE_id}.clean.fq.gz".format(base_out=odir,
-                                                                  SE_id=sample_name)
+            ofile_name1 = os.path.join(config.trim_fmt, "{PE_id}.clean.fq.gz").format(
+                base=odir,
+                PN=project_name,
+                SE_id=sample_name)
             return [luigi.LocalTarget(ofile_name1)]
 
     def run(self):
