@@ -5,7 +5,7 @@ Basic function for parse input sample name to formatted format in order to impor
 import itertools
 
 import pandas as pd
-
+import os
 
 class fileparser():
     def __init__(self, filename):
@@ -66,62 +66,3 @@ def validate_df(df):
     # if df["sample_name"].duplicated().any():
     #     raise Exception("sample_name has duplicated.")
     return columns_values
-
-
-# def pfn(filename, wanted):
-#
-#     filename = os.path.basename(filename)
-#     storged_dict = {}
-#     if not PROJECT_NAME:
-#         if '_' in filename and '-' in filename:
-#             storged_dict['project_name'] = filename[:min(filename.index('_'), filename.index('-'))]
-#         else:
-#             try:
-#                 storged_dict['project_name'] = filename[:filename.index('_')]
-#             except:
-#                 storged_dict['project_name'] = filename[:filename.index('-')]
-#     else:
-#         storged_dict['project_name'] = PROJECT_NAME
-#     try:
-#         storged_dict['sample_name'] = re.findall(sample_name_pattern,
-#                                                  filename)[0]
-#         storged_dict['sample_ID'] = re.findall(sample_ID_pattern,
-#                                                filename)[0]
-#     except:
-#         print('wrong pattern, please check it.\nOri file name: %s which could not find any given pattern' % (filename))
-#
-#     # get pair ID (which mean PE1 or PE2)
-#     try:
-#         storged_dict['pair_ID'] = re.findall(pair_ID_pattern, filename)[0]
-#     except:
-#         print('wrong pattern, please check it.\nOri file name: %s which could not find any given pattern' % (filename))
-#
-#     if input_pair_tuple:
-#         # if manually input,use it directly.
-#         # for some you can't strip simple N/T out to form pair result prefix file.
-#         for _pair in input_pair_tuple:
-#             # order is important, first one is tumor sample, next is normal sample
-#             if _pair[0] in filename:
-#                 storged_dict['mt2_for'] = TUMOR_SIG
-#                 storged_dict['pair_name'] = storged_dict['project_name'] + '_%s' % input_pair_tuple.index(_pair)
-#             elif _pair[1] in filename:
-#                 storged_dict['mt2_for'] = NORMAL_SIG
-#                 storged_dict['pair_name'] = storged_dict['project_name'] + '_%s' % input_pair_tuple.index(_pair)
-#             else:
-#                 continue
-#     else:
-#         # else find sign yes/not
-#         if (NORMAL_SIG and TUMOR_SIG):
-#             # if both exists
-#             try:
-#                 storged_dict['mt2_for'] = re.findall(mt2_for_pattern, filename)[0]
-#                 storged_dict['pair_name'] = re.findall(pair_name_pattern,filename)[0]
-#             except:
-#                 print('wrong pattern, please check it.\nOri file name: %s which could not find any given pattern' % (filename))
-#
-#     if wanted == 'all':
-#         return storged_dict
-#     else:
-#         return storged_dict[wanted]
-
-from main import *

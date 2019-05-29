@@ -7,7 +7,7 @@ sys.path.insert(0, dirname(dirname(__file__)))
 from parse_file_name import fileparser
 
 
-class workflow(luigi.Task):
+class main_entry(luigi.Task):
     tab = luigi.Parameter()
     odir = luigi.Parameter()
     analysis_type = luigi.Parameter(default="germline")
@@ -15,9 +15,10 @@ class workflow(luigi.Task):
 
     log_path = luigi.Parameter(default=None)
 
-    df = fileparser(tab)
+
 
     def requires(self):
+        df = fileparser(self.tab)
         if str(self.analysis_type).lower() == 'germline':
             from GermlinePipelines import new_Annovar2
 
@@ -38,3 +39,7 @@ class workflow(luigi.Task):
 
         elif str(self.analysis_type).lower() == 'somatic_gemini':
             pass
+if __name__ == '__main__':
+    luigi.run()
+
+# python3 main_entry --tab /home/liaoth/project/ZHJ_WES/data_input.csv --odir /home/liaoth/project/ZHJ_WES/output --analysis_type germline --dry_run

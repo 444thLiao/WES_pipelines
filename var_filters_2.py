@@ -1,5 +1,6 @@
 import csv
-import re, glob
+import glob
+import re
 from collections import defaultdict
 
 # from av_info import get_av_info
@@ -142,7 +143,11 @@ def Combined_analysis(args, input_path, output_path, input_path_format):
 
             for rec in reader:
                 total_vars += 1
-                var_id = (rec['Chr'], rec['Start'], rec['End'], rec['Ref'], rec['Alt'])
+                var_id = (rec['Chr'],
+                          rec['Start'],
+                          rec['End'],
+                          rec['Ref'],
+                          rec['Alt'])
                 dbsnp = rec['snp138']
                 ### clinvar pathogenic records
                 clin_sigs = rec['CLINSIG']
@@ -249,7 +254,7 @@ if __name__ == '__main__':
     snp138_common = set(lines)
 
     ### samples
-    samples = ['HCC591L','HCC591T']
+    samples = ['HCC591L', 'HCC591T']
     results = defaultdict(dict)
 
     outfile_summary = '/home/liaoth/project/YZ_XR_WES/server_result/somatic/YZ_XR_WES_germline_result.xls'
@@ -388,10 +393,16 @@ if __name__ == '__main__':
     outfh_summary = open(outfile_summary, 'w')
     header = ['variants'] + samples
     print >> outfh_summary, '\t'.join(header)
-    row_names = ['total variants', 'failed QC variants',
-                 'dbsnp', 'dbsnp common',
-                 '1K genome MAF >0.01', 'ExAC MAF >0.01', 'esp6500 MAF >0.01',
-                 'important variants', 'clinvar pathogenic variants', 'final variants']
+    row_names = ['total variants',
+                 'failed QC variants',
+                 'dbsnp',
+                 'dbsnp common',
+                 '1K genome MAF >0.01',
+                 'ExAC MAF >0.01',
+                 'esp6500 MAF >0.01',
+                 'important variants',
+                 'clinvar pathogenic variants',
+                 'final variants']
     for row_name in row_names:
         outs = [row_name]
         for sample in samples:

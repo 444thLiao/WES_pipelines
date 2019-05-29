@@ -26,7 +26,7 @@ def run_cmd(cmd, dry_run=False, log_file=None, **kwargs):
     else:
         outstream = log_file
 
-    print(cmd, file=outstream)
+    print(cmd)
     outstream.flush()
     if not dry_run:
         check_call(cmd,
