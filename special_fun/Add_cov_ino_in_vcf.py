@@ -263,10 +263,10 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf,
                     # data = dict(sample_call.data._asdict())
                     for ori_format in ori_format2info:
                         if ori_format =='AD':
-                            exec "bucket_{i}.insert(0,tuple(data['{i}'])[0])".format(i=ori_format)
-                            exec "bucket_{i}.insert(0,tuple(data['{i}'])[1])".format(i=ori_format)
+                            exec("bucket_{i}.insert(0,tuple(data['{i}'])[0])".format(i=ori_format))
+                            exec("bucket_{i}.insert(0,tuple(data['{i}'])[1])".format(i=ori_format))
                         else:
-                            exec "bucket_{i}.insert(0,data['{i}'])".format(i=ori_format)
+                            exec("bucket_{i}.insert(0,data['{i}'])".format(i=ori_format))
                 else:
                     buckec_SAD+=[int(ref_cov), int(alt_cov)]
 
@@ -277,13 +277,13 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf,
                     # data = dict(sample_call.data._asdict())
                     for ori_format in ori_format2info:
                         if ori_format == 'AD':
-                            exec "bucket_{i} += list(data['{i}'])".format(i=ori_format)
+                            exec("bucket_{i} += list(data['{i}'])".format(i=ori_format))
                         else:
-                            exec "bucket_{i}.append(data['{i}'])".format(i=ori_format)
+                            exec("bucket_{i}.append(data['{i}'])".format(i=ori_format))
             record.INFO[field1] = buckec_SAD
             record.INFO[field2] = bucket_SAF
             record.INFO[field3] = 2
             for ori_format in ori_format2info:
-                exec "record.INFO['{i}'] = bucket_{i}".format(i=ori_format)
+                exec("record.INFO['{i}'] = bucket_{i}".format(i=ori_format))
         vcf_writer.write_record(record)
     vcf_writer.close()
