@@ -57,7 +57,7 @@ class QC_trimmomatic(luigi.Task):
 
 
 class GenerateSam_pair(luigi.Task):
-    infodict: dict = luigi.DictParameter()
+    infodict = luigi.DictParameter()
     dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):

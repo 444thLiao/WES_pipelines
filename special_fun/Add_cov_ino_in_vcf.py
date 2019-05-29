@@ -1,9 +1,6 @@
 import pysam
 import vcf
-from main import *
-from parse_file_name import pfn
 
-# from cyvcf2 import VCF, Writer
 
 
 def special_cal_cov(bam, pos_list, fasta_file_path):
@@ -66,7 +63,7 @@ def parsed_vcf2pos_list(vcf_path):
         try:
             vcf_readed = vcf.Reader(fsock=vcf_path)
         except:
-            print 'Wrong vcf, it is a %s' % str(type(vcf))
+            print('Wrong vcf, it is a %s' % str(type(vcf)))
 
     pos_list = []
     for record in vcf_readed:
@@ -100,7 +97,7 @@ def Add_in_vcf_SO(bam, vcf_path, output_vcf, fasta_file='/home/liaoth/data/hg19/
             vcf_readed = vcf.Reader(fsock=vcf_path)
         except:
             raise IOError
-            print 'Wrong vcf, it is a %s' % str(type(vcf_path))
+            print('Wrong vcf, it is a %s' % str(type(vcf_path)))
 
     pos_list = parsed_vcf2pos_list(vcf_path)
 
@@ -171,7 +168,9 @@ def Add_in_vcf_SO(bam, vcf_path, output_vcf, fasta_file='/home/liaoth/data/hg19/
     vcf_writer.close()
 
 
-def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/hg19/ucsc.hg19.fasta', N_sig=NORMAL_SIG,
+def Add_in_vcf_PA(bam_list, vcf_path, output_vcf,
+                  fasta_file='/home/liaoth/data/hg19/ucsc.hg19.fasta',
+                  N_sig=NORMAL_SIG,
                   T_sig=TUMOR_SIG):
     """
     receive a vcf file and a related bam. Add coverage from bam into vcf and make it a new field.
@@ -194,7 +193,7 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/
             vcf_readed = vcf.Reader(fsock=vcf_path)
         except:
             raise IOError
-            print 'Wrong vcf, it is a %s' % str(type(vcf_path))
+            print('Wrong vcf, it is a %s' % str(type(vcf_path)))
 
     pos_list = parsed_vcf2pos_list(vcf_path)
 
@@ -233,7 +232,7 @@ def Add_in_vcf_PA(bam_list, vcf_path, output_vcf, fasta_file='/home/liaoth/data/
             buckec_SAD = []
             bucket_SAF = []
             for ori_format in ori_format2info:
-                exec 'bucket_%s = []' % ori_format
+                exec('bucket_%s = []' % ori_format)
 
             for sample_call in record.samples:
                 # it needs to fix the sample and the cov_info order.
