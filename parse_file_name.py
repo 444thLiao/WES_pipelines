@@ -35,28 +35,34 @@ class fileparser():
         return t_dict
 
     def somatic_pair(self):
+        """
+
+        :return: nid + tid: {Normal:{info}},{Tumor:{info}},{nid + tid}
+        """
         pair_dict = {}
         if self.is_somatic():
-            for sample_name in set(self.df.index):
-                sub_df = self.df.loc[sample_name, :]
+            for source_name in set(self.df.source_name):
+                # todo : use group by
+                sub_df = self.df.loc[self.df.source_name==source_name, :]
+                if len(sub_df.shape) == 1:
+                    # only one source_name occur
+                    # it may not a tumor-normal pair experiment, pass it
+                    continue
                 normal = sub_df.loc[sub_df["Somatic"] == "N"]
                 tumor = sub_df.loc[sub_df["Somatic"] == "T"]
                 product_combinations = list(itertools.product(range(normal.shape[0]),
                                                               range(tumor.shape[0])))
-                if len(product_combinations) > 1:
-                    # if multiple pair of samples. e.g. 2 Normal samples vs 1 Tumor samples
-                    for idx, comb in enumerate(product_combinations):
-                        key = "%s-%s" % (sample_name, idx + 1)
-                        pair_dict[key] = {}
-                        pair_dict[key]["Normal"] = normal.iloc[comb[0], :].to_dict()
-                        pair_dict[key]["Tumor"] = tumor.iloc[comb[1], :].to_dict()
-                        pair_dict[key]["SampleID"] = key
-                else:
-                    comb = product_combinations[0]
-                    pair_dict[sample_name] = {}
-                    pair_dict[sample_name]["Normal"] = normal.iloc[comb[0], :].to_dict()
-                    pair_dict[sample_name]["Tumor"] = tumor.iloc[comb[1], :].to_dict()
-                    pair_dict[sample_name]["SampleID"] = sample_name
+                # it may have multiple pair of samples. e.g. 2 Normal samples vs 1 Tumor samples
+                for comb in product_combinations:
+                    nid = normal.index[comb[0]]
+                    tid = tumor.index[comb[1]]
+                    key = "%s + %s" % (nid,
+                                       tid)
+                    pair_dict[key] = {}
+                    pair_dict[key]["Normal"] = normal.iloc[comb[0], :].to_dict()
+                    pair_dict[key]["Normal"]["SampleID"] = nid
+                    pair_dict[key]["Tumor"] = tumor.iloc[comb[1], :].to_dict()
+                    pair_dict[key]["Normal"]["SampleID"] = tid
 
             return pair_dict
         else:
@@ -71,6 +77,6 @@ def validate_df(df):
     if set(df.columns) != set(columns_values):
         raise Exception("INPUT file has unknown header")
 
-    # if df["sample_name"].duplicated().any():
-    #     raise Exception("sample_name has duplicated.")
+    if df["sample_name"].duplicated().any():
+        raise Exception("sample_name has duplicated.")
     return columns_values

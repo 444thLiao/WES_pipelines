@@ -35,6 +35,9 @@ class main_entry(luigi.Task):
 
             tasks = []
             for sample_name, sample_info in df.somatic_pair().items():
+                # sample_name must unique
+                sample_info["odir"] = self.odir
+                sample_info["log_path"] = self.log_path
                 tasks.append(new_Annovar2(infodict=sample_info,
                                           dry_run=self.dry_run))
             return tasks

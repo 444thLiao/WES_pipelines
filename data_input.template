@@ -1,1 +1,1 @@
-sample_name,project_name,path_R1,path_R2,Somatic,sequencing_type
+sample_name,project_name,source_name,path_R1,path_R2,Somatic,sequencing_type

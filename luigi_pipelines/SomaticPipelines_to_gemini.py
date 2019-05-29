@@ -4,7 +4,6 @@ import luigi
 
 from luigi_pipelines.SomaticPipelines import MuTect2_single, PrintReads, MuTect2_pair
 from luigi_pipelines.share_luigi_tasks import Add_cov_infos, gemini_part, vt_part, vep_part
-from . import *
 from special_fun import Add_cov_ino_in_vcf as P_vcf
 
 
