@@ -19,7 +19,7 @@ class main_entry(luigi.Task):
         df = fileparser(self.tab)
 
         if str(self.analysis_type).lower() == 'germline':
-            from GermlinePipelines import new_Annovar2
+            from .GermlinePipelines import new_Annovar2
 
             tasks = []
             for sample_name, sample_info in df.germline_pair().items():
@@ -30,7 +30,7 @@ class main_entry(luigi.Task):
             return tasks
 
         elif str(self.analysis_type).lower() == 'somatic':
-            from SomaticPipelines import new_Annovar2
+            from .SomaticPipelines import new_Annovar2
 
             tasks = []
             for sample_name, sample_info in df.somatic_pair().items():

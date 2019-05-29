@@ -6,8 +6,7 @@
 import luigi
 
 from luigi_pipelines.share_luigi_tasks import PrintReads, Annovar1, Annovar2
-from . import *
-from . import config
+from . import config,run_cmd
 
 
 #########7

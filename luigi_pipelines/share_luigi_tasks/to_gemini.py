@@ -2,7 +2,7 @@
 import luigi
 
 
-from special_fun import Add_cov_ino_in_vcf as P_vcf
+# from special_fun import Add_cov_ino_in_vcf as P_vcf
 from .. import config,run_cmd
 
 #########14

@@ -1,8 +1,6 @@
 import pysam
 import vcf
 
-
-
 def special_cal_cov(bam, pos_list, fasta_file_path):
     """
     Using a pos_list from vcf, we fetch its coverage info from bam and fasta_file, and return a dict for easily searching.
