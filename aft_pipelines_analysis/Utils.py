@@ -5,6 +5,10 @@ def extract2dict(Otherinfo):
     _n = _info[-2].split(':')
     _v = _info[-1].split(':')
     _query = dict(zip(_n, _v))
+
+    extrat_dict = _info[7].split(';')
+    extrat_dict = dict([_.split('=') for _ in extrat_dict if '=' in _])
+    _query.update(extrat_dict)
     return _query
 
 def count_indel(file_df):

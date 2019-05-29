@@ -1,9 +1,11 @@
-from __future__ import print_function
 from genes_list import snp_138_common_init,formatt_col
 import pandas,time
 import argparse
-import os, sys, glob
-def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic,output_path,pp=[0,2,3,4,5,6],snp_path='/home/liaoth/data/humandb/snp138Common.name.txt'):
+import os, sys
+import pandas as pd
+from tqdm import tqdm
+from glob import glob
+def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic,output_path,range_bed,pp=[0,2,3,4,5,6],snp_path='/home/liaoth/data/humandb/snp138Common.name.txt'):
     '''
     created at 2017-06-26 advances XK filter pipelines
 
@@ -62,7 +64,8 @@ def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic
         TUMOR_P_filtered_index = F_filter(TUMOR_P, option='higher', threshold=0.1)
         print('finish frequency filter.....')
         descriptions.append('Frequency')
-        counts.append([len(TUMOR_S_filtered_index),len(TUMOR_P_filtered_index)])
+        counts.append([len(TUMOR_S_filtered_index),
+                       len(TUMOR_P_filtered_index)])
 
     if 2 in pp:
         TUMOR_S_filtered_index = cov_filter_info_Version(TUMOR_S.loc[TUMOR_S_filtered_index, :])
@@ -96,13 +99,13 @@ def filter_pipelines2(normal_germline,normal_somatic, tumor_somatic,pair_somatic
         descriptions.append('De-germline_filter')
         counts.append([len(TUMOR_S_filtered_index),len(TUMOR_P_filtered_index)])
     if 7 in pp:
-        TUMOR_S_filtered_index = offtarget_filter(TUMOR_S.loc[TUMOR_S_filtered_index, :])
-        TUMOR_P_filtered_index = offtarget_filter(TUMOR_P.loc[TUMOR_P_filtered_index, :])
+        TUMOR_S_remained_index = intarget_filter(TUMOR_S.loc[TUMOR_S_filtered_index, :],range_list = range_bed)
+        TUMOR_P_remained_index = intarget_filter(TUMOR_P.loc[TUMOR_P_filtered_index, :],range_list = range_bed)
         print("finish 'target and TAF>=NAF' filter.....")
         descriptions.append('target and TAF>=NAF')
         counts.append([len(TUMOR_S_filtered_index), len(TUMOR_P_filtered_index)])
 
-    result1 = TUMOR_S.loc[sorted(set(TUMOR_S_filtered_index).difference(set(TUMOR_P_filtered_index))),:]
+    result1 = TUMOR_S.loc[sorted(set(TUMOR_S_filtered_index).intersection(set(TUMOR_P_filtered_index))),:]
     # Remove same variants in order to merge.
     result2 = TUMOR_P.loc[sorted(set(TUMOR_P_filtered_index))]
     result = pandas.concat([result1,result2])
@@ -133,25 +136,29 @@ if __name__ == '__main__':
                                 help="output dir")
     parse.add_argument('-s', dest='setting', type=str,required = True,
                                 help="setting file")
+    parse.add_argument('-b', dest='bed', type=str,required = True,
+                                help="bed file for WES")
     args = parse.parse_args()
-    csv_output_dir = args.input
+    input_dir = os.path.abspath(args.input)
     setting_file = args.setting
-    storge_dir = args.output
-    # csv_output_dir = '/home/liaoth/data2/project/XK_WES/180309_all/output/'
-    # setting_file = '/home/liaoth/data2/project/XK_WES/180309_all/setting.py'
-    ############################################################
-    # parse = argparse.ArgumentParser()
-    # parse.add_argument('-o', dest='output', type=str,required = True,
-    #                             help="output file ")
-    # args = parse.parse_args()
-    # output_file = args.output
+    output_dir = os.path.abspath(args.output)
+    bed_file = os.path.abspath(args.bed)
+
+    BED_INFO = pd.read_csv(bed_file, sep='\t', header=None,
+                           index_col=None)
+    range_list = []
+    for idx in tqdm(range(BED_INFO.shape[0])):
+        s, e = BED_INFO.iloc[idx, [1, 2]].values.tolist()
+        range_list += range(s, e + 1)
+
     ############################################################
     import_path = os.path.dirname(setting_file)
     sys.path.insert(0, import_path)
     from setting import *
     from filters import *
     ############################################################
-    samples_ids = [os.path.basename(i).split('.mt2.merged.')[0] for i in glob.glob(os.path.join(csv_output_dir, 'somatic', '*.csv'))]
+    samples_ids = [csv_f.split(".merged.anno.")[0] for csv_f in glob(os.path.join(input_dir,'**','*.csv'),
+                                                                     recursive=True)]
     pair_name = [i for i in samples_ids if NORMAL_SIG not in i and TUMOR_SIG not in i]
     for each_pair in pair_name:
         if each_pair.count('-') == 2:
@@ -160,16 +167,30 @@ if __name__ == '__main__':
         else:
             normal_name = each_pair + NORMAL_SIG
             tumor_name = each_pair + TUMOR_SIG
-        germline = glob.glob(os.path.join(csv_output_dir, 'germline', normal_name + '.merged*.csv'))[0]
-        somatic_normal = glob.glob(os.path.join(csv_output_dir, 'somatic', normal_name + '.mt2*.csv'))[0]
-        somatic_tumor = glob.glob(os.path.join(csv_output_dir, 'somatic', tumor_name + '.mt2*.csv'))[0]
-        somatic_pair = glob.glob(os.path.join(csv_output_dir, 'somatic', each_pair + '.mt2*.csv'))[0]
-        output_file = os.path.join(storge_dir,'%s_all_except_AF_depth.csv' % each_pair)
+        germline = glob.glob(os.path.join(input_dir, 'germline', normal_name + '.merged*.csv'))[0]
+        somatic_normal = glob.glob(os.path.join(input_dir, 'somatic', normal_name + '.mt2*.csv'))[0]
+        somatic_tumor = glob.glob(os.path.join(input_dir, 'somatic', tumor_name + '.mt2*.csv'))[0]
+        somatic_pair = glob.glob(os.path.join(input_dir, 'somatic', each_pair + '.mt2*.csv'))[0]
+        output_file = os.path.join(output_dir,'%s_all_except_AF_depth.csv' % each_pair)
         if not os.path.isdir(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
         print("filter_pipelines2(%s,%s,%s,%s,%s,pp=[3,4,5,6])" % (germline,somatic_normal,somatic_tumor,somatic_pair,output_file))
-        filter_pipelines2(germline,somatic_normal,somatic_tumor,somatic_pair,output_file,pp=[3,4,5,6],snp_path=snp138_common_file)
-        filter_pipelines2(germline, somatic_normal, somatic_tumor, somatic_pair, output_file.replace('except_AF_depth.csv','except_AF_depth_PASS.csv'), pp=[3, 4, 6],snp_path=snp138_common_file)
+        filter_pipelines2(germline,
+                          somatic_normal,
+                          somatic_tumor,
+                          somatic_pair,
+                          output_file,
+                          range_bed=range_list,
+                          pp=[3,4,5,6],
+                          snp_path=snp138_common_file)
+        filter_pipelines2(germline,
+                          somatic_normal,
+                          somatic_tumor,
+                          somatic_pair,
+                          output_file.replace('except_AF_depth.csv','except_AF_depth_PASS.csv'),
+                          pp=[3, 4, 6],
+                          range_bed=range_list,
+                          snp_path=snp138_common_file)
         # print()
 
 

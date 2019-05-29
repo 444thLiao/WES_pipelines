@@ -1,6 +1,8 @@
-import re, glob, pandas, os,argparse
+import re, pandas, os,argparse
 from pandas import DataFrame as df
-import tqdm,sys
+import sys
+from tqdm import tqdm
+from glob import glob
 import multiprocessing
 def run(cmd):
     print(cmd)
@@ -18,7 +20,8 @@ def cov_depth(cov_info):
     result_depths = []
     result_coverages = []
     depths_name = []
-    for _i in tqdm.tqdm(range(1,101),total=100):
+    for _i in tqdm(range(1,101),
+                   total=100):
         _coverage = len(raw_info[raw_info.base >= _i*10])
         _depth = _i*10
         depths_name.append('%sX' % str(_depth))

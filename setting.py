@@ -25,6 +25,9 @@ annovar_pro = '/home/liaoth/tools/annovar'
 gatk_pro = '/tools/GATK-4.0/gatk'
 samtools_pro = '/home/liaoth/.local/bin/bin/samtools'
 trimmomatic_jar = '/home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar'
+pircard_jar = "/home/liaoth/tools/picard-tools-2.5.0/picard.jar"
+gatkv36_path = "/home/liaoth/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
+
 server_script_path = '/home/liaoth/tools/Whole_pipelines'
 ###### Local setting.
 server_path = 'liaoth@10.10.1.64'
@@ -33,35 +36,9 @@ local_vt_pro = '/home/liaoth/tools/vt/vt'
 pcgr_pro = '/home/liaoth/data2/pcgr-0.5.3'
 local_hg19_ref_db = '/home/liaoth/data2/hg19/ucsc.hg19.fasta'
 local_bed_file = '/home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed'
-#####Paired format.
-PE1_fmt = '{input}_R1'
-PE2_fmt = '{input}_R2'
-#####Single format
-SE_fmt = '{input}_L001_R1_001'
 ######PCR gene number   ###PCR part
 total_gen = 26
 PCR_ON = False
-###### For parse file name in order to pipeline analyze.
-sample_ID_pattern = 'XK-([0-9]+)[%s%s](?:-2)?' % (NORMAL_SIG, TUMOR_SIG)
-pair_ID_pattern = '_R([12])'
-mt2_for_pattern = 'XK-[0-9]+([%s%s])' % (NORMAL_SIG, TUMOR_SIG)
-pair_name_pattern = '(XK-[0-9]+)[%s%s](?:-2)?' % (NORMAL_SIG, TUMOR_SIG)
-sample_name_pattern = '(XK-[0-9]+[A-Z](?:-2)?)'
-
-
-input_pair_tuple = []
-
-PROJECT_NAME = 'XK'
-##############################################################
-#####
-#####    SELF ADJUST PART OF INPUT FILENAME
-##### USED IT IN SOME COMPLEXITY FILENAME YOU HARD TO PARSE
-##############################################################
-self_adjust_fn = True
-filter_str = ''
-R1_INDICATOR = '_R1'
-R2_INDICATOR = '_R2'
-fq_suffix = '.fastq.gz'
 
 
 ##############################################################
@@ -76,18 +53,21 @@ somatic_pair_output_fmt = '{path}/{PN}_result/{PairN}_somatic/{PairN}'
 somatic_single_output_fmt = '{path}/{PN}_result/{SN}_somatic/{SN}'
 trim_fmt = '{base}/{PN}_result/trim_result'
 
-## For testing the protype of multithread
-somatic_pair_output_fmt2 = '{path}/{PN}_result/{PairN}_somatic/{PairN}'
-somatic_single_output_fmt2 = '{path}/{PN}_result/{SN}_somatic/{SN}'
-
 worker = 6
-annovar_thread = 20
-bip=''
-max_memory= 10240
 
+bip = ''
+max_memory = 10240
+
+## software params
+trimmomatic_thread = 10
+sort_sam_ram = "60G"
+sort_sam_thread = 10
+gatk_thread = 20
+annovar_thread = 20
 ## DB files, Normaly don't need to change.
+annovar_db = "/home/liaoth/tools/annovar/humandb/"
 REF_file_path = '/home/db_public/hg19/ucsc.hg19.fasta'
-known_gold_cvf = '/home/db_public/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf'
+known_gold_vcf = '/home/db_public/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf'
 db_snp = '/home/db_public/hg19/dbsnp_138.hg19.vcf'
 cos_snp = '/home/db_public/hg19/combinded_hg19_cosmic_v77.vcf'
 genome_version = 'hg19'

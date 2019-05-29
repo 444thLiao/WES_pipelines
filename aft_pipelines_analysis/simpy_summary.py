@@ -16,11 +16,11 @@ def make_summary(input_csv):
     else:
         columns = ['Gene_fun', 'Exonic_fun']
         for _csv in input_csv:
-            samples_name = os.path.basename(_csv).split('_')[0]
+            samples_name = os.path.basename(_csv).split('.merged.anno')[0]
             columns.append(samples_name)
         result = pd.DataFrame(columns=columns)
         for _csv in input_csv:
-            samples_name = os.path.basename(_csv).split('_')[0]
+            samples_name = os.path.basename(_csv).split('.merged.anno')[0]
             cache_df = pd.read_csv(_csv)
             counter_yet = Counter(
                 [';;;'.join(_) for _ in cache_df.loc[:, ['Func.refGene', 'ExonicFunc.refGene']].values.tolist()])

@@ -3,35 +3,49 @@ from Utils import extract2dict
 import pandas as pd
 import tqdm
 
-BED_INFO = pd.read_csv(local_bed_file, sep='\t', header=None,
-                       index_col=None)
-range_list = []
-for idx in tqdm.tqdm(range(BED_INFO.shape[0])):
-    s, e = BED_INFO.iloc[idx, [1, 2]].values.tolist()
-    range_list += range(s, e + 1)
+def get_af(_info):
+    " get depth frequency of alt "
+    _query = extract2dict(_info)
+
+    af_info = _query.get('AF', '0')
+    if ',' in af_info:
+        af_info = float(af_info.split(',')[0])
+    else:
+        af_info = float(af_info)
+    depth_cal_af = _query.get('AD',)
+    try:
+        ref_d,alt_d = map(float,depth_cal_af.split(','))
+    except:
+        import pdb;pdb.set_trace()
+    depth_af = alt_d / (ref_d+alt_d) * 100
+
+    return depth_af
 
 def snp_common(snpfile_list,file_df):
-
+    "return not common SNP"
     common_snp_index = set(file_df[file_df.snp138.isin(snpfile_list)].index)
     rare_snp = list(set(file_df.index).difference(common_snp_index))
 
     return rare_snp
 
-def pass_filter(file_df,_in = ('PASS')):
-    if 'Otherinfo' not in file_df:
-        return 'Wrong Columns'
-
+def pass_filter(file_df,match ):
+    if 'Otherinfo' not in file_df.columns:
+        return 'Wrong df'
+    if type(match) != set:
+        match = set(match)
     pass_bucket = []
-    for _index in list(file_df.index):
-        _info = file_df.loc[_index, 'Otherinfo']
-        if type(_info) != str:
-            import pdb;pdb.set_trace()
-        _query = _info.split('\t')[6]
+    for idx,row in file_df.iterrows():
+        _info = row['Otherinfo']
+        _query = str(_info).split('\t')
+        if len(_query) <= 6:
+            # continue
+            raise Exception("too short")
         try:
-            if set(_in).intersection(set(_query.split(';'))):
-                pass_bucket.append(_index)
+
+            if match.intersection(set(_query[6].split(';'))):
+                pass_bucket.append(idx)
         except:
-            print(_index,'it should be wrong')
+            print(idx,'it should be wrong')
     return pass_bucket
 
 
@@ -51,30 +65,31 @@ def cov_filter_info_Version(file_df,threshold = 10):
 
 
 def F_filter(file_df,option='lower',threshold=0.03):
-    if 'Otherinfo' not in file_df:
-        return 'Wrong Columns'
+    if 'Otherinfo' not in file_df.columns:
+        return 'Wrong df'
 
-    lowF_bucket = []
-    for _index in list(file_df.index):
-        _info = file_df.loc[_index, 'Otherinfo']
+    F_bucket = []
+    for idx,row in file_df.iterrows():
+        _info = row['Otherinfo']
         _query = extract2dict(_info)
 
-        af_info = _query['AF']
+        af_info = _query.get('AF','0')
         if ',' in af_info:
             af_info = float(af_info.split(',')[0])
         else:
             af_info = float(af_info)
         if option == 'higher':
             if af_info >= threshold:
-                lowF_bucket.append(_index)
+                F_bucket.append(idx)
         elif option == 'lower':
             if af_info <= threshold:
-                lowF_bucket.append(_index)
-    return lowF_bucket
+                F_bucket.append(idx)
+    return F_bucket
 
 
-def offtarget_filter(file_df):
-    subset_df = file_df.loc[~file_df.loc[:, 'Start'].isin(range_list), :]
+def intarget_filter(file_df,range_list):
+    "return SNP in sequencing range"
+    subset_df = file_df.loc[file_df.loc[:, 'Start'].isin(range_list), :]
     return list(subset_df.index)
 
 def clinvar_filter(file_df,not_in = ('benign','likely benign')):
@@ -82,7 +97,7 @@ def clinvar_filter(file_df,not_in = ('benign','likely benign')):
     for _index in list(file_df.index):
         _info = file_df.loc[_index,'CLINSIG'].lower()
         _info = _info.split('|')
-        if _info != ['.'] and set(not_in).intersection(set(_info)):
+        if _info != ['.'] and not set(not_in).intersection(set(_info)):
             clin_imp_bucket.append(_index)
     return clin_imp_bucket
 
