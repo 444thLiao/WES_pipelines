@@ -2,8 +2,8 @@ from collections import defaultdict
 
 import luigi
 
-from luigi_pipelines.share_luigi_tasks import PrintReads, run_cmd, valid_path, Annovar1, Annovar2
-from . import *
+from luigi_pipelines.share_luigi_tasks import PrintReads,  Annovar1, Annovar2
+from luigi_pipelines import config
 
 
 #########somatic pipeline
