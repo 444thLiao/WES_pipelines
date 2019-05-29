@@ -18,7 +18,7 @@ class HaplotypeCaller(luigi.Task):
         return PrintReads(infodict=self.infodict, dry_run=self.dry_run)
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.recal_reads.bam',
+        return luigi.LocalTarget(self.input().path.replace('.recal_reads.bam',
                                                               '.raw_variants.vcf'))
 
     def run(self):
