@@ -6,17 +6,17 @@
 import luigi
 
 from luigi_pipelines.share_luigi_tasks import PrintReads, Annovar1, Annovar2
-from .. import valid_path, run_cmd
-from main import *
+from . import *
+from . import config
 
 
 #########7
 class HaplotypeCaller(luigi.Task):
-    sampleID = luigi.Parameter()
+    infodict = luigi.DictParameter()
     dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):
-        return PrintReads(sampleID=self.sampleID, dry_run=self.dry_run)
+        return PrintReads(infodict=self.infodict, dry_run=self.dry_run)
 
     def output(self):
         return luigi.LocalTarget(self.input()[0].path.replace('.recal_reads.bam',
@@ -25,29 +25,29 @@ class HaplotypeCaller(luigi.Task):
     def run(self):
         valid_path(self.output().path, check_ofile=1)
 
-        if bed_file_path != '':
-            extra_str = "-L %s" % bed_file_path
+        if config.bed_file_path != '':
+            extra_str = "-L %s" % config.bed_file_path
         else:
             extra_str = ''
         cmdline = "java -Xmx4g -jar {gatk} -T HaplotypeCaller -nct {gatk_thread} -R {REF} -I {input} {extra_str} --genotyping_mode DISCOVERY --dbsnp {db_snp} -stand_call_conf 10 -stand_emit_conf 5 -A AlleleBalance -A Coverage -A FisherStrand -o {output_f}".format(
-            gatk=gatkv36_path,
-            gatk_thread=gatk_thread,
-            REF=REF_file_path,
+            gatk=config.gatkv36_path,
+            gatk_thread=config.gatk_thread,
+            REF=config.REF_file_path,
             input=self.input().path,
             extra_str=extra_str,
-            db_snp=db_snp,
+            db_snp=config.db_snp,
             output_f=self.output().path)
         run_cmd(cmdline, dry_run=self.dry_run)
 
 
 #########9
 class SelectVariants(luigi.Task):
-    sampleID = luigi.Parameter()
+    infodict = luigi.DictParameter()
     object_type = luigi.Parameter()
     dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):
-        return HaplotypeCaller(sampleID=self.sampleID,
+        return HaplotypeCaller(infodict=self.infodict,
                                dry_run=self.dry_run)
 
     def output(self):
@@ -71,8 +71,8 @@ class SelectVariants(luigi.Task):
             raise Exception
 
         cmdline = "java -Xmx4g -jar {gatk} -T SelectVariants -R {REF} -V {input_f} -selectType {selecttype} -o {output_f}".format(
-            gatk=gatkv36_path,
-            REF=REF_file_path,
+            gatk=config.gatkv36_path,
+            REF=config.REF_file_path,
             input_f=self.input().path,
             output_f=self.output().path,
             selecttype=selecttype)
@@ -81,12 +81,12 @@ class SelectVariants(luigi.Task):
 
 #########10
 class VariantFiltration(luigi.Task):
-    sampleID = luigi.Parameter()
+    infodict = luigi.DictParameter()
     object_type = luigi.Parameter()
     dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):
-        return SelectVariants(sampleID=self.sampleID,
+        return SelectVariants(infodict=self.infodict,
                               dry_run=self.dry_run,
                               object_type=self.object_type)
 
@@ -103,8 +103,8 @@ class VariantFiltration(luigi.Task):
         else:
             raise Exception
         cmdline = """java -Xmx4g -jar {gatk} -T VariantFiltration -R {REF} -V {input_f} --filterExpression "{filterExpression}" --filterName \"my_{object_type}_filter\" -o {output_f}""".format(
-            gatk=gatkv36_path,
-            REF=REF_file_path,
+            gatk=config.gatkv36_path,
+            REF=config.REF_file_path,
             input_f=self.input().path,
             output_f=self.output().path,
             filterExpression=filterExpression,
@@ -114,11 +114,11 @@ class VariantFiltration(luigi.Task):
 
 #########13
 class CombineVariants(luigi.Task):
-    sampleID = luigi.DictParameter()
+    infodict = luigi.DictParameter()
     dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):
-        required_task = {ot: VariantFiltration(sampleID=self.sampleID,
+        required_task = {ot: VariantFiltration(infodict=self.infodict,
                                                dry_run=self.dry_run,
                                                object_type=ot)
                          for ot in ["snp", "indel"]}
@@ -131,8 +131,8 @@ class CombineVariants(luigi.Task):
     def run(self):
         valid_path(self.output().path, check_ofile=1)
         cmdline = "java -Xmx4g -jar {gatk} -T CombineVariants -R {REF} --variant:indel {input_indel} --variant:snp {input_snp} --interval_padding 25 --out {output_f} --setKey set --genotypemergeoption UNSORTED".format(
-            gatk=gatkv36_path,
-            REF=REF_file_path,
+            gatk=config.gatkv36_path,
+            REF=config.REF_file_path,
             input_indel=self.input()["indel"].path,
             input_snp=self.input()["snp"].path,
             output_f=self.output().path)
@@ -141,29 +141,17 @@ class CombineVariants(luigi.Task):
 
 class new_Annovar1(Annovar1):
     def requires(self):
-        return CombineVariants(sampleID=self.sampleID,
+        return CombineVariants(infodict=self.infodict,
                                dry_run=self.dry_run)
 
 
 class new_Annovar2(Annovar2):
     def requires(self):
-        return new_Annovar1(sampleID=self.sampleID,
+        return new_Annovar1(infodict=self.infodict,
                             dry_run=self.dry_run)
-
-#
-# class workflow(luigi.Task):
-#
-#     x = luigi.Parameter()
-#     dry_run = luigi.BoolParameter(default=False)
-#
-#     def requires(self):
-#         samples_IDs = str(self.x).split(',')
-#         return [new_Annovar2(sampleID=i,
-#                              dry_run=self.dry_run)
-#                 for i in samples_IDs]
 
 
 if __name__ == '__main__':
     luigi.run()
 
-    # python -m luigi --module SomaticPipelines_fast_version workflow --x XK-8T_S21,XK-2T_S20,XK-2W_S17,XK-8W_S18 --parallel-scheduling --workers 12 --local-scheduler
+    # python3 GermlinePipelines.py new_Annovar2

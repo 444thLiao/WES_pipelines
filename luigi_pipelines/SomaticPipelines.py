@@ -3,7 +3,7 @@ from collections import defaultdict
 import luigi
 
 from luigi_pipelines.share_luigi_tasks import PrintReads, run_cmd, valid_path, Annovar1, Annovar2
-from main import *
+from . import *
 
 
 #########somatic pipeline

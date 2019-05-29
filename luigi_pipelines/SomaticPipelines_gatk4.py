@@ -4,8 +4,7 @@ import luigi
 
 from luigi_pipelines.share_luigi_tasks import Annovar1, Annovar2
 from luigi_pipelines.share_luigi_tasks.gatk4 import PrintReads
-from main import *
-from .. import valid_path, run_cmd
+from . import *
 
 
 #########somatic pipeline

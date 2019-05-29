@@ -29,7 +29,10 @@ class fileparser():
             return False
 
     def germline_pair(self):
-        return self.df.to_dict(orient='index')
+        t_dict = self.df.to_dict(orient='index')
+        for k,d in t_dict.items():
+            d["SampleID"] = k
+        return t_dict
 
     def somatic_pair(self):
         pair_dict = {}
@@ -41,23 +44,28 @@ class fileparser():
                 product_combinations = list(itertools.product(range(normal.shape[0]),
                                                               range(tumor.shape[0])))
                 if len(product_combinations) > 1:
+                    # if multiple pair of samples. e.g. 2 Normal samples vs 1 Tumor samples
                     for idx, comb in enumerate(product_combinations):
                         key = "%s-%s" % (sample_name, idx + 1)
                         pair_dict[key] = {}
                         pair_dict[key]["Normal"] = normal.iloc[comb[0], :].to_dict()
                         pair_dict[key]["Tumor"] = tumor.iloc[comb[1], :].to_dict()
+                        pair_dict[key]["SampleID"] = key
                 else:
                     comb = product_combinations[0]
                     pair_dict[sample_name] = {}
                     pair_dict[sample_name]["Normal"] = normal.iloc[comb[0], :].to_dict()
                     pair_dict[sample_name]["Tumor"] = tumor.iloc[comb[1], :].to_dict()
+                    pair_dict[sample_name]["SampleID"] = sample_name
+
             return pair_dict
         else:
             raise Exception("No somatic/pair samples detected")
 
 
 def validate_df(df):
-    template_file = os.path.join(os.path.dirname(__file__), "data_input.template")
+    template_file = os.path.join(os.path.dirname(__file__),
+                                 "data_input.template")
     columns_values = open(template_file).read().strip('\n').split(',')
 
     if set(df.columns) != set(columns_values):

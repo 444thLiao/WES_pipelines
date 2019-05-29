@@ -7,14 +7,8 @@
 
 ##Noramlly need to change part
 ###    Change Change
-base_outpath = '/home/liaoth/project/XK_WES/180321/output'
-base_inpath = '/home/liaoth/data_bank/XK_WES/180321/'
-bed_file_path = '/home/liaoth/data_bank/XK_WES/Sureselect_V6_COSMIC_formal.bed'
-####For somatic pipelines
-NORMAL_SIG = 'W'
-TUMOR_SIG = 'T'
-####Pair or not
-Pair_data = True
+
+
 ###### server programe path
 vt_pro = '/home/liaoth/tools/vt/vt'
 vep_pro = '/home/liaoth/tools/ensembl-vep-release-91/vep'
@@ -28,14 +22,7 @@ trimmomatic_jar = '/home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar'
 pircard_jar = "/home/liaoth/tools/picard-tools-2.5.0/picard.jar"
 gatkv36_path = "/home/liaoth/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
 
-server_script_path = '/home/liaoth/tools/Whole_pipelines'
-###### Local setting.
-server_path = 'liaoth@10.10.1.64'
-local_project_path = '/home/liaoth/data2/project/XK_WES/180321/output'
-local_vt_pro = '/home/liaoth/tools/vt/vt'
-pcgr_pro = '/home/liaoth/data2/pcgr-0.5.3'
-local_hg19_ref_db = '/home/liaoth/data2/hg19/ucsc.hg19.fasta'
-local_bed_file = '/home/liaoth/data2/project/XK_WES/Sureselect_V6_COSMIC_formal.bed'
+
 ######PCR gene number   ###PCR part
 total_gen = 26
 PCR_ON = False
@@ -45,6 +32,7 @@ PCR_ON = False
 ##
 ## Usually you don't need to change part.
 ##############################################################
+bed_file_path = '/home/liaoth/data_bank/XK_WES/Sureselect_V6_COSMIC_formal.bed'
 
 ## file structure of output result, Normaly don't need to change.
 output_dir = '{path}/{PN}_result/{SN}'

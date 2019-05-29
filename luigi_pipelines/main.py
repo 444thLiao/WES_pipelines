@@ -15,15 +15,16 @@ class main_entry(luigi.Task):
 
     log_path = luigi.Parameter(default=None)
 
-
-
     def requires(self):
         df = fileparser(self.tab)
+
         if str(self.analysis_type).lower() == 'germline':
             from GermlinePipelines import new_Annovar2
 
             tasks = []
-            for sample_name, sample_info in self.df.germline_pair().items():
+            for sample_name, sample_info in df.germline_pair().items():
+                sample_info["odir"] = self.odir
+                sample_info["log_path"] = self.log_path
                 tasks.append(new_Annovar2(sample_dict=sample_info,
                                           dry_run=self.dry_run))
             return tasks
@@ -32,7 +33,7 @@ class main_entry(luigi.Task):
             from SomaticPipelines import new_Annovar2
 
             tasks = []
-            for sample_name, sample_info in self.df.somatic_pair().items():
+            for sample_name, sample_info in df.somatic_pair().items():
                 tasks.append(new_Annovar2(sample_dict=sample_info,
                                           dry_run=self.dry_run))
             return tasks
@@ -42,4 +43,4 @@ class main_entry(luigi.Task):
 if __name__ == '__main__':
     luigi.run()
 
-# python3 main_entry --tab /home/liaoth/project/ZHJ_WES/data_input.csv --odir /home/liaoth/project/ZHJ_WES/output --analysis_type germline --dry_run
+# python3 main_entry --tab /home/liaoth/project/ZHJ_WES/data_input.csv --odir /home/liaoth/project/ZHJ_WES/output --analysis-type germline --dry-run
