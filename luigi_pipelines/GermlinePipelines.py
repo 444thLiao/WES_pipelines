@@ -90,7 +90,7 @@ class VariantFiltration(luigi.Task):
                               object_type=self.object_type)
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.raw_',
+        return luigi.LocalTarget(self.input().path.replace('.raw_',
                                                               '.filter_'))
 
     def run(self):
