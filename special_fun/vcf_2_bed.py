@@ -1,5 +1,5 @@
 import vcf
-def vcf_2_bed(input_vcf,vcf_bed):
+def vcf2bed(input_vcf, vcf_bed):
     """
     For some reason, some samples don't have any bed file to use.
     Like some WGS or untold sample, we need to self-cal the bed file from the vcf incase to reduce the low coverage point.
@@ -11,17 +11,17 @@ def vcf_2_bed(input_vcf,vcf_bed):
     :return:
     """
     vcf_record = vcf.Reader(filename=input_vcf)
-    bed_str = ''
-    for _record in vcf_record:
-        chr = _record.CHROM
-        POS = int(_record.POS)
-        REF = _record.REF
-        ALT = _record.ALT
-        max_ALT_length = max([len(_alt) for _alt in ALT])
+    with open(vcf_bed, 'w') as f1:
+        for _record in vcf_record:
+            CHROM = _record.CHROM
+            POS = int(_record.POS)
+            REF = _record.REF
+            ALT = _record.ALT
+            max_ALT_length = max([len(_alt) for _alt in ALT])
+            row = [CHROM,str(POS-1),str(POS-1+max(max_ALT_length,len(REF))),'']
 
-        bed_str += chr+'\t'+ str(POS-1) +'\t' + str(POS-1+max(max_ALT_length,len(REF))) +'\n'
+            f1.write('\t'.join(row)+'\n')
+            f1.flush()
 
-    with open(vcf_bed,'w') as f1:
-        f1.write(bed_str)
 
 

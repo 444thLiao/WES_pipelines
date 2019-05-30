@@ -1,6 +1,9 @@
+import pandas as pd
 import pysam
 import vcf
-import setting as config
+from tqdm import tqdm
+
+
 def special_cal_cov(bam, pos_list, fasta_file_path):
     """
     Using a pos_list from vcf, we fetch its coverage info from bam and fasta_file, and return a dict for easily searching.
@@ -15,8 +18,8 @@ def special_cal_cov(bam, pos_list, fasta_file_path):
     def _parse_bam(bam, pos_list, fasta_file_path):
         all_cov_info = {}
         fastafile = pysam.FastaFile(filename=fasta_file_path)
-        bam_file = pysam.AlignmentFile(bam,'rb')
-        for pos in pos_list:
+        bam_file = pysam.AlignmentFile(bam, 'rb')
+        for pos in tqdm(pos_list):
             cov_info = bam_file.count_coverage(contig=pos[0],
                                                start=int(pos[1]),
                                                end=int(pos[1]) + 1,
@@ -24,7 +27,7 @@ def special_cal_cov(bam, pos_list, fasta_file_path):
             # four array.arrays of the same length in order A C G T.
             # So it likes (array('L', [0L]), array('L', [0L]), array('L', [0L]), array('L', [985L]))
             # Mean it has 985 T and doesn't has other.
-            cov_info_parsed = list(map(lambda x:int(x[0]),
+            cov_info_parsed = list(map(lambda x: int(x[0]),
                                        cov_info))
             cov_info_dict = dict(zip("ACGT",
                                      cov_info_parsed))
@@ -84,10 +87,9 @@ def count_sample(samples):
         return list(set(samples))
 
 
-def Add_in_vcf_SO(bam,
+def Add_in_vcf_SO(infofile,
                   vcf_path,
-                  output_vcf,
-                  fasta_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'):
+                  output_vcf, ):
     """
     receive a vcf file and a related bam.
     Add coverage from bam into vcf and make it a new field.
@@ -107,14 +109,15 @@ def Add_in_vcf_SO(bam,
         except:
             raise IOError('Wrong vcf, it is a %s' % str(type(vcf_path)))
 
-    pos_list = parsed_vcf2pos_list(vcf_path)
+    info_df = pd.read_csv(infofile, sep='\t')
+    info_df.index = info_df.iloc[:, [1, 2, 3]].astype(str).sum(1)
     samples = count_sample(vcf_readed.samples)
 
     if len(samples) != 1:
         return
 
-    right_infos = vcf_readed.infos
-    machine = right_infos.values()[0]
+    new_infos = vcf_readed.infos
+    machine = list(new_infos.values())[0]
 
     field1 = "SAD"
     field2 = "SAF"
@@ -125,36 +128,34 @@ def Add_in_vcf_SO(bam,
                    "Alt base count divide the total reads number in this pos. Self cal frequency from bam file. It is different from AF. It is rawer than AF."]
     field3_info = [field3, '.', 'Integer',
                    "A field which describe this file is single only analysis or pair analysis. 1 for single analysis, 2 for pair analysis."]
-    right_infos[field1] = machine._make(field1_info + [None, None])
-    right_infos[field2] = machine._make(field2_info + [None, None])
-    right_infos[field3] = machine._make(field3_info + [None, None])
+    new_infos[field1] = machine._make(field1_info + [None, None])
+    new_infos[field2] = machine._make(field2_info + [None, None])
+    new_infos[field3] = machine._make(field3_info + [None, None])
     for ori_format in ori_format2info:
-        right_infos[ori_format] = right_infos.values()[0]._make(
-            vcf_readed.formats[ori_format]._asdict().values() + [None, None])
+        if ori_format not in new_infos.keys():
+            new_infos[ori_format] = list(new_infos.values())[0]._make(
+                list(vcf_readed.formats[ori_format]._asdict().values()) + [None, None])
 
-    vcf_readed.infos = right_infos
+    vcf_readed.infos = new_infos
 
-    all_cov_info = special_cal_cov(bam, pos_list, fasta_file)
     vcf_writer = vcf.Writer(open(output_vcf, 'w'), vcf_readed)
 
     for record in vcf_readed:
         if record.is_snp:
-            query_for = (record.CHROM, record.POS - 1)
-            cov_info = all_cov_info[query_for]
-            ref_base, ref_cov = cov_info[0]
-            if len(cov_info) > 2:
-                for n_i in range(1, len(cov_info) - 1):
-                    if cov_info[n_i][0] == record.ALT[0]:
-                        alt_base, alt_cov = cov_info[n_i]
-            elif len(cov_info) == 1:
-                alt_base = record.ALT[0]
-                alt_cov = 0
-            else:
-                alt_base, alt_cov = cov_info[1]
+            # SNP instead of indel
+            query_index = record.CHROM + str(record.POS - 1) + str(record.REF)
+            row = info_df.loc[query_index, :]
+            if len(row.shape) == 2:
+                # if multiple index occur
+                row = row[0,:]
 
-            SAD = [int(ref_cov), int(alt_cov)]
+            ref_base = row["Reference"]  # should same as record.REF
+            ref_cov = row[ref_base.upper()]
+            alt_cov = row[record.ALT[0].upper()]
+
+            SAD = [int(ref_cov),
+                   int(alt_cov)]
             try:
-
                 SAF = round(float(alt_cov) / sum(SAD), 4)
             except ZeroDivisionError:
                 SAF = 0
@@ -162,7 +163,10 @@ def Add_in_vcf_SO(bam,
             record.INFO[field1] = tuple(SAD)
             record.INFO[field2] = SAF
             record.INFO[field3] = 1
-
+        else:
+            # for indel we just ignore it.
+            # write the original info
+            pass
         for sample in record.samples:
             data = dict(sample.data._asdict())
             for ori_format in ori_format2info:

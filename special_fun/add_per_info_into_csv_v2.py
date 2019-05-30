@@ -6,9 +6,6 @@ import pysamstats
 import pysam
 """
 Function to add extra column(Majority about mut_percent, ref_cov, mut_cov) from depth_info into csv_result file.
-
-
-
 Type: Formatted-for function.
 """
 

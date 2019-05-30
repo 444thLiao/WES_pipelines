@@ -110,7 +110,7 @@ class sorted_bam(luigi.Task):
                           dry_run=self.dry_run)
 
     def output(self):
-        return luigi.LocalTarget(self.infodict.get("sorted_bam",""))
+        return luigi.LocalTarget(self.infodict.get("sorted_bam", ""))
 
     def run(self):
         cmdline = "samtools sort -m {sort_sam_ram} -f -@ {sort_sam_thread} %s %s" % (self.input().path,
@@ -163,12 +163,13 @@ class RealignerTargetCreator(luigi.Task):
             input_f = self.input()[1].path
         else:
             input_f = self.input()[0].path
-        cmdline = "java -jar {gatk} -T RealignerTargetCreator -nt {thread} -R {REF} -I {input_f} --known {known_gold_vcf} -o {output_f}".format(gatk=config.gatkv36_path,
-                                                                                                                                                thread=config.gatk_thread,
-                                                                                                                                                REF=config.REF_file_path,
-                                                                                                                                                input_f=input_f,
-                                                                                                                                                output_f=self.output().path,
-                                                                                                                                                known_gold_vcf=config.known_gold_vcf)
+        cmdline = "java -jar {gatk} -T RealignerTargetCreator -nt {thread} -R {REF} -I {input_f} --known {known_gold_vcf} -o {output_f}".format(
+            gatk=config.gatkv36_path,
+            thread=config.gatk_thread,
+            REF=config.REF_file_path,
+            input_f=input_f,
+            output_f=self.output().path,
+            known_gold_vcf=config.known_gold_vcf)
 
         run_cmd(cmdline, dry_run=self.dry_run)
 
@@ -194,11 +195,12 @@ class IndelRealigner(luigi.Task):
             input_f = self.input()[2].path
         else:
             input_f = self.input()[0].path
-        cmdline = "java -Xmx5g -jar {gatk} -T IndelRealigner -R {REF} -I {input_f} -targetIntervals {target_Inter} -o {output_f}".format(gatk=config.gatkv36_path,
-                                                                                                                                         REF=config.REF_file_path,
-                                                                                                                                         input_f=input_f,
-                                                                                                                                         target_Inter=self.input()[1].path,
-                                                                                                                                         output_f=self.output().path)
+        cmdline = "java -Xmx5g -jar {gatk} -T IndelRealigner -R {REF} -I {input_f} -targetIntervals {target_Inter} -o {output_f}".format(
+            gatk=config.gatkv36_path,
+            REF=config.REF_file_path,
+            input_f=input_f,
+            target_Inter=self.input()[1].path,
+            output_f=self.output().path)
         run_cmd(cmdline, dry_run=self.dry_run)
         cmdline = 'samtools index %s' % self.output().path
         run_cmd(cmdline, dry_run=self.dry_run)
@@ -241,14 +243,41 @@ class PrintReads(luigi.Task):
                                  dry_run=self.dry_run)]
 
     def output(self):
-        return luigi.LocalTarget(self.infodict.get("recal_bam",""))
+        return luigi.LocalTarget(self.infodict.get("recal_bam", ""))
 
     def run(self):
-        cmdline = "java -Xmx4g -jar {gatk} -T PrintReads -R {REF} -I {input_f} -BQSR {recal_base} -o {output_f}".format(gatk=config.gatkv36_path,
-                                                                                                                        REF=config.REF_file_path,
-                                                                                                                        input_f=self.input()[0].path,
-                                                                                                                        recal_base=self.input()[1].path,
-                                                                                                                        output_f=self.output().path)
+        cmdline = "java -Xmx4g -jar {gatk} -T PrintReads -R {REF} -I {input_f} -BQSR {recal_base} -o {output_f}".format(
+            gatk=config.gatkv36_path,
+            REF=config.REF_file_path,
+            input_f=self.input()[0].path,
+            recal_base=self.input()[1].path,
+            output_f=self.output().path)
         run_cmd(cmdline, dry_run=self.dry_run)
         cmdline = 'samtools index %s' % self.output().path
         run_cmd(cmdline, dry_run=self.dry_run)
+
+
+############################################################
+class quality_assessment(luigi.Task):
+    tab_file = luigi.Parameter()
+    odir = luigi.Parameter()
+    infodict = luigi.DictParameter()
+    dry_run = luigi.BoolParameter(default=False)
+
+    def requires(self):
+        return PrintReads(infodict=self.infodict, dry_run=self.dry_run)
+
+    def output(self):
+        return luigi.LocalTarget(os.path.join(str(self.odir),
+                                              'quality_accessment_raw.csv'))
+
+    def run(self):
+        py_file = os.path.join(dirname(dirname(__file__)),
+                               "api",
+                               "quality_accessment.py")
+
+        run_cmd("python3 {pyfile} -i {input} -o {output}".format(
+            pyfile=py_file,
+            input=self.tab_file,
+            output=self.odir),
+            dry_run=self.dry_run)

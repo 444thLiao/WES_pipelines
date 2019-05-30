@@ -3,10 +3,15 @@
 ### @GPZ-bioinfo, 20190525
 ###############################################################################################
 
-import luigi
+from os.path import dirname
 
+import luigi
+import os
+
+from luigi_pipelines import config, run_cmd, valid_path
 from luigi_pipelines.share_luigi_tasks import PrintReads, Annovar1, Annovar2
-from luigi_pipelines import config,run_cmd,valid_path
+
+
 
 
 #########7
@@ -19,7 +24,7 @@ class HaplotypeCaller(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(self.input().path.replace('.recal_reads.bam',
-                                                              '.raw_variants.vcf'))
+                                                           '.raw_variants.vcf'))
 
     def run(self):
         valid_path(self.output().path, check_ofile=1)
@@ -91,7 +96,7 @@ class VariantFiltration(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(self.input().path.replace('.raw_',
-                                                              '.filter_'))
+                                                           '.filter_'))
 
     def run(self):
         valid_path(self.output().path, check_ofile=1)

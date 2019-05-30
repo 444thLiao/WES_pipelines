@@ -1,9 +1,50 @@
-
 import luigi
 
-
+from pre_pipelines_analysis.cal_Cov_script_version import bed2info
 from special_fun import Add_cov_ino_in_vcf as P_vcf
-from .. import config,run_cmd
+from special_fun.vcf_2_bed import vcf2bed
+from .. import config, run_cmd
+
+
+class luigi_vcf2bed(luigi.Task):
+    "convert vcf to bed, summarized coverage info from this bed"
+    infodict = luigi.DictParameter()
+    dry_run = luigi.BoolParameter(default=False)
+
+    def requires(self):
+        pass
+        # return CombineVariants(infodict=self.infodict, dry_run=self.dry_run)
+
+    def output(self):
+        return luigi.LocalTarget(self.input().path.replace('.vcf',
+                                                           '.bed'))
+
+    def run(self):
+        vcf2bed(self.input().path,
+                self.output().path)
+
+
+class luigi_bed2info(luigi.Task):
+    "convert vcf to bed, summarized coverage info from this bed"
+    infodict = luigi.DictParameter()
+    ref_file = luigi.Parameter(default='')
+    dry_run = luigi.BoolParameter(default=False)
+
+    def requires(self):
+        pass
+        # return [PrintReads(infodict=self.infodict, dry_run=self.dry_run),
+        #         convert_vcf2bed(infodict=self.infodict, dry_run=self.dry_run)]
+
+    def output(self):
+        return luigi.LocalTarget(self.input()[1].path.replace('.bed',
+                                                              '.info'))
+
+    def run(self):
+        bed2info(self.input()[0].path,
+                 self.output().path,
+                 self.input()[1].path,
+                 config.REF_file_path if not self.ref_file else self.ref_file)
+
 
 #########14
 class Add_cov_infos(luigi.Task):
@@ -13,22 +54,20 @@ class Add_cov_infos(luigi.Task):
     def requires(self):
         "abstract for implement"
         pass
-        # return [CombineVariants(sampleID=self.sampleID, dry_run=self.dry_run),
-        #         PrintReads(sampleID=self.sampleID, dry_run=self.dry_run)]
+        # return [CombineVariants(infodict=self.infodict,dry_run=self.dry_run),
+        #         luigi_bed2info(infodict=self.infodict,dry_run=self.dry_run)]
 
     def output(self):
-        "abstract for implement"
-        # return luigi.LocalTarget(self.input()[0].path.replace('.merged.vcf',
-        #                                                       '.added_cov.vcf'))
+        return luigi.LocalTarget(self.input()[0].path.replace('.vcf',
+                                                               '.with_cov.vcf'))
 
     def run(self):
-        recal_bam = self.input()[1].path
         merged_vcf = self.input()[0].path
+        cov_info = self.input()[1].path
 
-        P_vcf.Add_in_vcf_SO(recal_bam,
-                            merged_vcf,
-                            self.output().path,
-                            config.REF_file_path)
+        P_vcf.Add_in_vcf_SO(infofile=cov_info,
+                            vcf_path=merged_vcf,
+                            output_vcf=self.output().path,)
 
 
 #########15
@@ -41,7 +80,7 @@ class vt_part(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(self.input().path.replace('.added_cov.vcf',
-                                                              '.vt.vcf'))
+                                                           '.vt.vcf'))
 
     def run(self):
         cmdline = "{vt} decompose -s {input_vcf} | {vt} normalize -r {REF}- > {vt_vcf}".format(

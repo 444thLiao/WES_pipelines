@@ -5,20 +5,25 @@
 
 import luigi
 
-from luigi_pipelines.GermlinePipelines import HaplotypeCaller, CombineVariants
-from luigi_pipelines.share_luigi_tasks import Add_cov_infos, gemini_part, vt_part, vep_part
+from luigi_pipelines.GermlinePipelines import CombineVariants,PrintReads
+from luigi_pipelines.share_luigi_tasks import luigi_vcf2bed,luigi_bed2info,Add_cov_infos, gemini_part, vt_part, vep_part
 
+
+class luigi_vcf2bed(luigi_vcf2bed):
+    def requires(self):
+        return CombineVariants(infodict=self.infodict, dry_run=self.dry_run)
+
+class luigi_bed2info(luigi_bed2info):
+    def requires(self):
+        return [PrintReads(infodict=self.infodict, dry_run=self.dry_run),
+                luigi_vcf2bed(infodict=self.infodict, dry_run=self.dry_run)]
 
 #########14
 class Add_cov_infos(Add_cov_infos):
 
     def requires(self):
-        return [CombineVariants(infodict=self.infodict, dry_run=self.dry_run),
-                HaplotypeCaller(infodict=self.infodict, dry_run=self.dry_run)]
-
-    def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.merged.vcf',
-                                                              '.added_cov.vcf'))
+        return [CombineVariants(infodict=self.infodict,dry_run=self.dry_run),
+                luigi_bed2info(infodict=self.infodict,dry_run=self.dry_run)]
 
 
 #########15

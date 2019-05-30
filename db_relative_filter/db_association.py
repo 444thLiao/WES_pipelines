@@ -3,7 +3,12 @@ from pandas import DataFrame as df
 import re
 
 
-def filter_base_pos(input_csv,input_query,output,q_csv = '\t',q_cols = ['chromosome','start','stop'],cols_prefix='test'):
+def filter_base_pos(input_csv,
+                    input_query,
+                    output,
+                    q_csv = '\t',
+                    q_cols = ['chromosome','start','stop'],
+                    cols_prefix='test'):
     subject_csv = df.from_csv(input_csv,index_col=False)
     query_csv = df.from_csv(input_query,sep=q_csv,index_col=False)
 
@@ -32,7 +37,13 @@ def filter_base_pos(input_csv,input_query,output,q_csv = '\t',q_cols = ['chromos
             subject_csv.loc[s_idxs,:].to_csv(f1,index=False)
     return exist_pair
 
-def filter_base_alteration(input_csv,input_query,output,q_col = 'Alteration',s_col = 'AAChange.refGene',cols_prefix = 'test',altera_pattern = '[A-Z]\d+[A-Z]?'):
+def filter_base_alteration(input_csv,
+                           input_query,
+                           output,
+                           q_col = 'Alteration',
+                           s_col = 'AAChange.refGene',
+                           cols_prefix = 'test',
+                           altera_pattern = '[A-Z]\d+[A-Z]?'):
     subject_csv = df.from_csv(input_csv,index_col=False)
     query_csv = df.from_csv(input_query,sep='\t',index_col=False)
 
@@ -58,7 +69,11 @@ def filter_base_alteration(input_csv,input_query,output,q_col = 'Alteration',s_c
 
 
 
-def filter_base_alteration2(input_csv,input_query,output,q_col = 'Alteration',s_col = 'AAChange.refGene',cols_prefix = 'test',altera_pattern = '[A-Z]+\d+[A-Z]+'):
+def filter_base_alteration2(input_csv,
+                            input_query,
+                            output,
+                            q_col = 'Alteration',
+                            s_col = 'AAChange.refGene',cols_prefix = 'test',altera_pattern = '[A-Z]+\d+[A-Z]+'):
     #for  '/home/liaoth/data/Cancer_db/cancer_genome_interpreter/cgi_biomarkers_20170208/cgi_biomarkers_per_variant.tsv'
     subject_csv = df.from_csv(input_csv,index_col=False)
     query_csv = df.from_csv(input_query,sep='\t',index_col=False)

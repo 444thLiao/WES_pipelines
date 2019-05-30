@@ -6,6 +6,7 @@ import luigi
 sys.path.insert(0, dirname(dirname(__file__)))
 sys.path.insert(0, dirname(__file__))
 from parse_file_name import fileparser
+from share_luigi_tasks import quality_assessment
 
 
 class main_entry(luigi.Task):
@@ -19,6 +20,10 @@ class main_entry(luigi.Task):
     def requires(self):
         df = fileparser(self.tab)
         antype = str(self.analysis_type).lower()
+        tasks = []
+
+        sample_info = []
+        ############################################################
         if antype in ['germline', "germline_gatk4"]:
             if antype == "germline":
                 from GermlinePipelines import new_Annovar2
@@ -26,23 +31,25 @@ class main_entry(luigi.Task):
                 from GermlinePipelines_gatk4 import new_Annovar2
             else:
                 raise Exception()
-            tasks = []
+
             for sample_name, sample_info in df.get_output_file_path(self.odir).items():
                 sample_info["odir"] = self.odir
                 sample_info["log_path"] = self.log_path
                 tasks.append(new_Annovar2(infodict=sample_info,
                                           dry_run=self.dry_run))
-            return tasks
+
+            tasks.append(new_Annovar2(infodict=df.germline_pair(),
+                                      dry_run=self.dry_run))
+
 
         elif antype in ['somatic', "somatic_gatk4"]:
-            if antype == "germline":
+            if antype == "somatic":
                 from SomaticPipelines import new_Annovar2
-            elif antype == "germline_gatk4":
+            elif antype == "somatic_gatk4":
                 from SomaticPipelines_gatk4 import new_Annovar2
             else:
                 raise Exception()
 
-            tasks = []
             for combine_name, pair_info in df.somatic_pair().items():
                 pair_info["odir"] = self.odir
                 pair_info["log_path"] = self.log_path
@@ -52,7 +59,6 @@ class main_entry(luigi.Task):
                 pair_info["Tumor"]["log_path"] = self.log_path
                 tasks.append(new_Annovar2(infodict=pair_info,
                                           dry_run=self.dry_run))
-            return tasks
         elif antype == "germline_gemini":
             from GermlinePipelines_to_gemini import gemini_part
             tasks = []
@@ -60,22 +66,28 @@ class main_entry(luigi.Task):
                 sample_info["odir"] = self.odir
                 sample_info["log_path"] = self.log_path
                 tasks.append(gemini_part(infodict=sample_info,
-                                             dry_run=self.dry_run))
-            print(tasks)
-            return tasks
+                                         dry_run=self.dry_run))
         elif antype == "somatic_gemini":
             from SomaticPipelines_to_gemini import gemini_part
-            tasks = []
+
             for sample_name, sample_info in df.get_output_file_path(self.odir).items():
                 sample_info["odir"] = self.odir
                 sample_info["log_path"] = self.log_path
                 tasks.append(gemini_part(infodict=sample_info,
-                                             dry_run=self.dry_run))
+                                         dry_run=self.dry_run))
 
-            return tasks
         else:
             raise Exception
+        if sample_info:
+            tasks.append(quality_assessment(tab_file=self.tab,
+                                            odir=self.odir,
+                                            infodict=sample_info,
+                                            dry_run=self.dry_run,
+                                            ))
+        return tasks
 
+    def run(self):
+        pass
 
 
 if __name__ == '__main__':

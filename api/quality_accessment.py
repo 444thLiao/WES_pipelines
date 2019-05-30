@@ -69,6 +69,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', dest='input_tab', required=True, type=str)
     parser.add_argument('-o', dest='output_dir', required=True, type=str)
+
+
     args = parser.parse_args()
 
     tab_file = os.path.abspath(args.input_tab)
@@ -117,5 +119,6 @@ if __name__ == '__main__':
         result_df.loc[sid, 'clean data/bp'] = num_trimmed_reads
 
     result_df.loc[:, 'target_length/bp'] = Total_pos_num
-    result_df.to_csv(os.path.join(odir, 'quality_accessment_raw.csv'))
+    result_df.to_csv(os.path.join(odir,
+                                  'quality_accessment_raw.csv'))
     print('completing recal bam(before Calling) base pair count with different depth summary.')
