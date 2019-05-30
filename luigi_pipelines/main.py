@@ -61,6 +61,7 @@ class main_entry(luigi.Task):
                 sample_info["log_path"] = self.log_path
                 tasks.append(new_gemini_part(infodict=sample_info,
                                              dry_run=self.dry_run))
+            print(tasks)
             return tasks
         elif antype == "somatic_gemini":
             from SomaticPipelines_to_gemini import new_gemini_part
@@ -70,9 +71,11 @@ class main_entry(luigi.Task):
                 sample_info["log_path"] = self.log_path
                 tasks.append(new_gemini_part(infodict=sample_info,
                                              dry_run=self.dry_run))
+
             return tasks
         else:
             raise Exception
+
 
 
 if __name__ == '__main__':
