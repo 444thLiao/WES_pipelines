@@ -13,27 +13,13 @@ class QC_trimmomatic(luigi.Task):
     dry_run = luigi.BoolParameter(default=False)
 
     def output(self):
-        project_name = self.infodict.get("project_name", "")
-        odir = self.infodict.get("odir", "")
-        odir = config.trim_fmt.format(base=odir,
-                                      PN=project_name)
-        sample_name = self.infodict.get("SampleID", '')
 
         if self.PE2:
-            ofile_name1 = os.path.join(config.trim_fmt, "{PE_id}.clean.fq.gz").format(
-                base=odir,
-                PN=project_name,
-                PE1_id=sample_name + "_R1")
-            ofile_name2 = os.path.join(config.trim_fmt, "{PE_id}.clean.fq.gz").format(
-                base=odir,
-                PN=project_name,
-                PE1_id=sample_name + "_R2")
+            ofile_name1 = self.infodict.get("trim_R1", '')
+            ofile_name2 = self.infodict.get("trim_R2", '')
             return [luigi.LocalTarget(ofile_name1), luigi.LocalTarget(ofile_name2)]
         else:
-            ofile_name1 = os.path.join(config.trim_fmt, "{PE_id}.clean.fq.gz").format(
-                base=odir,
-                PN=project_name,
-                SE_id=sample_name)
+            ofile_name1 = self.infodict.get("trim_R1", '')
             return [luigi.LocalTarget(ofile_name1)]
 
     def run(self):
@@ -79,14 +65,7 @@ class GenerateSam_pair(luigi.Task):
                               dry_run=self.dry_run)
 
     def output(self):
-        sample_name = self.infodict.get("SampleID", '')
-        project_name = self.infodict.get("project_name", "")
-        odir = self.infodict.get("odir", "")
-
-        return luigi.LocalTarget(
-            config.output_fmt.format(path=odir,
-                                     PN=project_name,
-                                     SN=sample_name) + '.sam')
+        return luigi.LocalTarget(self.infodict.get("sam", ""))
 
     def run(self):
         valid_path(self.output().path, check_ofile=1)
@@ -131,7 +110,7 @@ class sorted_bam(luigi.Task):
                           dry_run=self.dry_run)
 
     def output(self):
-        return luigi.LocalTarget(self.input().path.replace('.bam', '_sorted.bam'))
+        return luigi.LocalTarget(self.infodict.get("sorted_bam",""))
 
     def run(self):
         cmdline = "samtools sort -m {sort_sam_ram} -f -@ {sort_sam_thread} %s %s" % (self.input().path,
@@ -262,8 +241,7 @@ class PrintReads(luigi.Task):
                                  dry_run=self.dry_run)]
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.realign.bam',
-                                                              '.recal_reads.bam'))
+        return luigi.LocalTarget(self.infodict.get("recal_bam",""))
 
     def run(self):
         cmdline = "java -Xmx4g -jar {gatk} -T PrintReads -R {REF} -I {input_f} -BQSR {recal_base} -o {output_f}".format(gatk=config.gatkv36_path,

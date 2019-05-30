@@ -29,7 +29,7 @@ class main_entry(luigi.Task):
             else:
                 raise Exception()
             tasks = []
-            for sample_name, sample_info in df.germline_pair().items():
+            for sample_name, sample_info in df.get_output_file_path(self.odir).items():
                 sample_info["odir"] = self.odir
                 sample_info["log_path"] = self.log_path
                 tasks.append(new_Annovar2(infodict=sample_info,

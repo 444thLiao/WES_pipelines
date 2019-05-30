@@ -1,98 +1,130 @@
-from __future__ import print_function
-import pysam
-import pandas as pd
 import argparse
-import tqdm
+import os
+
+import numpy as np
+import pandas as pd
+import pysam
+from tqdm import tqdm
+
+from parse_file_name import fileparser
+
 """
-confirmed 2018.03.19
+rewritten at 20190530
 Function to cal each base info from given bed file and bam file.
+with same bed file and same fasta file
+
 :type Cal_Function
 """
 
-def cal_fun(bam_path, bed_file,REF_file='/home/liaoth/data/hg19/ucsc.hg19.fasta'):
+
+def cal_fun(bam_path, output_cov, bed_file, REF_file):
     print('Start loading required file......')
-    bed_file = pd.read_csv(bed_file, index_col=False, sep='\t', header=None)
+    bed_file = pd.read_csv(bed_file,
+                           index_col=False,
+                           sep='\t',
+                           header=None)
     try:
         bamfile = pysam.AlignmentFile(bam_path, 'rb')
     except:
-        print("bamefile need to cal doesn't exist")
-        raise IOError
-
+        raise IOError("bamefile need to cal doesn't exist")
     fastafile = pysam.FastaFile(filename=REF_file)
-    f1 = open(bam_path.partition('.')[0] + '_cov.info', 'w')
-    ####define each file path.
-    result = 'Gene\tChr\tPosition\tReference\tbase\tA\tC\tG\tT\tA_Rate\tC_Rate\tG_Rate\tT_Rate\t1\t2\t3\t4\n'
-    f1.write(result)
+    f1 = open(output_cov, 'w')
+    # define the header
+    header = ['Gene',
+              'Chr',
+              'Position',
+              'Reference',
+              'base',
+              'A',
+              'C',
+              'G',
+              'T',
+              'A_Rate',
+              'C_Rate',
+              'G_Rate',
+              'T_Rate',
+              '1',
+              '2',
+              '3',
+              '4']
+    f1.write('\t'.join(header) + '\n')
     f1.flush()
-    #define columns.
-    #print 'Loading required file. using %d' % (time.time()-t1)
+    # define columns.
+    # print 'Loading required file. using %d' % (time.time()-t1)
     print('STARTING TO ITERATION. ')
-    count = 0
-    pro_count = 0
-    if debug_:
-        import pdb;pdb.set_trace()
-    for i in tqdm.tqdm(range(bed_file.shape[0]),
-                       total=bed_file.shape[0]):
-        Chr, start, end, Gene_name = bed_file.iloc[i, [0, 1, 2, 3]].values
+    for idx, row in tqdm(bed_file.iterrows()):
+        Chr, start, end, Gene_name = row[:4]
         start = min(int(start), int(end))
         end = max(int(start), int(end))
-        #fetch basic info.
-        coverage_ACGT = bamfile.count_coverage(Chr, start, end, read_callback='nofilter',
-                                               quality_threshold=0)  ###fixed coordinate
-        base_counter = dict(zip(['A', 'C', 'G', 'T'], coverage_ACGT))
+        # fetch basic info.
+        coverage_ACGT = bamfile.count_coverage(Chr,
+                                               start,
+                                               end,
+                                               read_callback='nofilter',
+                                               quality_threshold=0)
+        ###fixed coordinate
+        coverage_ACGT = np.array(coverage_ACGT)
         ref_base_str = fastafile.fetch(Chr, start, end)
-        if sum(sum(j) for j in coverage_ACGT) != 0:
-            for idx_n, base_n in enumerate(range(start, end)):
-                pro_count += 1
-                n_read = int(sum([k[idx_n] for k in coverage_ACGT]))
-                ###total base num
-                if n_read == 0:
+        # return str
+        if coverage_ACGT.sum().sum() != 0:
+            # total base for all ACGT doesn't equal to 0
+            for relative_pos, real_pos in enumerate(range(start, end)):
+                depth_ = coverage_ACGT[:, relative_pos].sum()
+                # total base num at this pos
+                num_A, num_C, num_G, num_T = coverage_ACGT[:, relative_pos]
+
+                if depth_ == 0:
+                    # if position here didn't have any base, then pass this pos.
                     continue
-                    #if position here didn't have any base, then pass this pos.
-                result = Gene_name + '\t' + Chr + '\t' + str(base_n) + '\t' + ref_base_str[
-                    idx_n].upper() + '\t' + '\t'
-                for base in ['A', 'C', 'G', 'T']:
-                    result += str(base_counter[base][idx_n]) + '\t'
-                    count += base_counter[base][idx_n]
-                    #write the A/T/G/C num.
+                row = '\t'.join([Gene_name,
+                                 Chr,
+                                 str(real_pos),
+                                 ref_base_str[relative_pos].upper(),
+                                 depth_,
+                                 str(num_A),
+                                 str(num_C),
+                                 str(num_G),
+                                 str(num_T)])  # left an empty line
 
-                for base in ['A', 'C', 'G', 'T']:
-                    result += str(
-                        round(float(base_counter[base][idx_n]) / n_read, 4)) + '\t'
+                for num_base in [num_A, num_C, num_G, num_T]:
+                    row += str(
+                        round(float(num_base) / depth_,
+                              4)) + '\t'
                     # wirte the rate of A/T/C/G RATE
-
-                little_rank_list = [(each_one[1][idx_n], each_one[0]) for each_one in
-                                    base_counter.items()]
-                #construct a list to sort A/T/C/G each base num.
-                result += '\t'.join([ranked_base[1] for ranked_base in sorted(little_rank_list, reverse=True)]) + '\n'
-                #make it columns and tag a '\n' sign.
-                f1.write(result)
+                ranked_base = sorted(list("ACGT"),
+                                     key=lambda x: coverage_ACGT["ACGT".index(x),
+                                                                 relative_pos],
+                                     reverse=True)
+                # construct a list to sort A/T/C/G each base num.
+                row += '\t'.join(ranked_base) + '\n'
+                f1.write(row)
                 f1.flush()
-            #in case the last base didn't have any base, it will continue, so need to check the last sign.
-        else:
-            pass
-    # with open(bam_path.partition('.')[0]+'_cov.info', 'w') as f1:
-    #     f1.write(result)
-    print('Cal cov info complete.total base is ',count,bam_path)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--bam', dest='bam_path', type=str,required=True,help="bam file path")
-    parser.add_argument('-B','--bed',dest= 'bed_path',type=str,required=True,help='bed file path')
-    parser.add_argument('-r', '--ref', dest='ref_fasta', type=str, help='reference fasta file path')
-    parser.add_argument('-debug', '--debug', dest='debug_', action="store_true", help="Entering debug mode.")
+    parser.add_argument('-i', dest='input_tab', required=True, type=str)
+    parser.add_argument('-o', dest='output', required=True, type=str)
+    parser.add_argument('-B', '--bed', dest='bed_path', type=str, help='bed file path')
+    parser.add_argument('-r', '--ref', dest='ref_fasta', type=str, help='reference fasta file path', default='/home/liaoth/data/hg19/ucsc.hg19.fasta')
     args = parser.parse_args()
 
-    bam_path = args.bam_path
-    bed_path = args.bed_path
-    ref_path = args.ref_fasta
-    debug_ = args.debug_
-    if ref_path:
-        cal_fun(bam_path=bam_path,
-                bed_file=bed_path,
-                REF_file=ref_path)
-    else:
-        cal_fun(bam_path=bam_path,
-                bed_file=bed_path)
+    input_tab = os.path.abspath(args.input_tab)
+    odir = os.path.abspath(args.output)
+    bed_path = os.path.abspath(args.bed_path)
+    ref_path = os.path.abspath(args.ref_fasta)
 
+    df = fileparser(input_tab)
+    sample_dict = df.get_output_file_path(odir)
 
+    for sid in sample_dict.keys():
+        # todo: could be multiprocessing
+        infodict = sample_dict[sid]
+        for alignment, output_cov in zip([infodict["sorted_bam"],
+                                          infodict["recal_bam"]],
+                                         [infodict["sorted_cov"],
+                                          infodict["recal_cov"]]):
+            cal_fun(bam_path=alignment,
+                    output_cov=output_cov,
+                    bed_file=bed_path,
+                    REF_file=ref_path)

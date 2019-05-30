@@ -70,7 +70,8 @@ class fileparser():
         else:
             raise Exception("No somatic/pair samples detected")
 
-    def get_output_file_path(self, odir):
+    def get_output_file_path(self, odir, gettype='germline'):
+        # return formatted/output file name, unify all output here.
         sample_dict = self.germline_pair()
         for sample_id, infodict in sample_dict.items():
             sample_name = infodict.get("SampleID", '')
@@ -83,10 +84,10 @@ class fileparser():
                 base=odir,
                 PN=project_name,
                 PE2_id=sample_name + "_R2")
-            # infodict["sam"] = config.output_fmt.format(
-            #     path=odir,
-            #                          PN=project_name,
-            #                          SN=sample_name) + '.sam'
+            infodict["sam"] = config.output_fmt.format(
+                path=odir,
+                PN=project_name,
+                SN=sample_name) + '.sam'
             infodict["sorted_bam"] = config.output_fmt.format(
                 path=odir,
                 PN=project_name,
@@ -95,7 +96,17 @@ class fileparser():
                 path=odir,
                 PN=project_name,
                 SN=sample_name) + '.recal_reads.bam'
+
+            infodict["sorted_cov"] = config.output_fmt.format(
+                path=odir,
+                PN=project_name,
+                SN=sample_name) + '.sorted_cov.info'
+            infodict["recal_cov"] = config.output_fmt.format(
+                path=odir,
+                PN=project_name,
+                SN=sample_name) + '.recal_cov.info'
         return sample_dict
+
 
 def validate_df(df):
     template_file = os.path.join(os.path.dirname(__file__),
