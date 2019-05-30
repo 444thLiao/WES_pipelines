@@ -167,10 +167,11 @@ def Add_in_vcf_SO(infofile,
             # for indel we just ignore it.
             # write the original info
             pass
+
         for sample in record.samples:
             data = dict(sample.data._asdict())
             for ori_format in ori_format2info:
-                if data[ori_format]:
+                if data.get(ori_format,''):
                     record.INFO[ori_format] = data[ori_format]
 
         vcf_writer.write_record(record)
