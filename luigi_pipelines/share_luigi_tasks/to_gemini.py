@@ -2,7 +2,7 @@
 import luigi
 
 
-# from special_fun import Add_cov_ino_in_vcf as P_vcf
+from special_fun import Add_cov_ino_in_vcf as P_vcf
 from .. import config,run_cmd
 
 #########14
@@ -14,7 +14,7 @@ class Add_cov_infos(luigi.Task):
         "abstract for implement"
         pass
         # return [CombineVariants(sampleID=self.sampleID, dry_run=self.dry_run),
-        #         HaplotypeCaller(sampleID=self.sampleID, dry_run=self.dry_run)]
+        #         PrintReads(sampleID=self.sampleID, dry_run=self.dry_run)]
 
     def output(self):
         "abstract for implement"
@@ -22,8 +22,11 @@ class Add_cov_infos(luigi.Task):
         #                                                       '.added_cov.vcf'))
 
     def run(self):
-        P_vcf.Add_in_vcf_SO(self.input()[1].path,
-                            self.input()[0].path,
+        recal_bam = self.input()[1].path
+        merged_vcf = self.input()[0].path
+
+        P_vcf.Add_in_vcf_SO(recal_bam,
+                            merged_vcf,
                             self.output().path,
                             config.REF_file_path)
 
@@ -37,7 +40,7 @@ class vt_part(luigi.Task):
         return Add_cov_infos(infodict=self.infodict, dry_run=self.dry_run)
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.added_cov.vcf',
+        return luigi.LocalTarget(self.input().path.replace('.added_cov.vcf',
                                                               '.vt.vcf'))
 
     def run(self):
