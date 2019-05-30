@@ -10,7 +10,7 @@ from luigi_pipelines.share_luigi_tasks import Add_cov_infos, gemini_part, vt_par
 
 
 #########14
-class new_Add_cov_infos(Add_cov_infos):
+class Add_cov_infos(Add_cov_infos):
 
     def requires(self):
         return [CombineVariants(infodict=self.infodict, dry_run=self.dry_run),
@@ -22,17 +22,17 @@ class new_Add_cov_infos(Add_cov_infos):
 
 
 #########15
-class new_vt_part(vt_part):
+class vt_part(vt_part):
     def requires(self):
         return Add_cov_infos(infodict=self.infodict, dry_run=self.dry_run)
 
 
-class new_vep_part(vep_part):
+class vep_part(vep_part):
     def requires(self):
         return vt_part(infodict=self.infodict, dry_run=self.dry_run)
 
 
-class new_gemini_part(gemini_part):
+class gemini_part(gemini_part):
     def requires(self):
         return vep_part(infodict=self.infodict,
                         dry_run=self.dry_run)
