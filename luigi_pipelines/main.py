@@ -19,13 +19,11 @@ class main_entry(luigi.Task):
     def requires(self):
         df = fileparser(self.tab)
         antype = str(self.analysis_type).lower()
-        if antype in ['germline', "germline_gatk4", "germline_gemini"]:
+        if antype in ['germline', "germline_gatk4"]:
             if antype == "germline":
                 from GermlinePipelines import new_Annovar2
             elif antype == "germline_gatk4":
                 from GermlinePipelines_gatk4 import new_Annovar2
-            elif antype == "germline_gemini":
-                from GermlinePipelines_to_gemini import new_Annovar2
             else:
                 raise Exception()
             tasks = []
@@ -36,13 +34,11 @@ class main_entry(luigi.Task):
                                           dry_run=self.dry_run))
             return tasks
 
-        elif antype in ['somatic', "somatic_gatk4", "somatic_gemini"]:
+        elif antype in ['somatic', "somatic_gatk4"]:
             if antype == "germline":
                 from SomaticPipelines import new_Annovar2
             elif antype == "germline_gatk4":
                 from SomaticPipelines_gatk4 import new_Annovar2
-            elif antype == "germline_gemini":
-                from SomaticPipelines_to_gemini import new_Annovar2
             else:
                 raise Exception()
 
@@ -56,6 +52,24 @@ class main_entry(luigi.Task):
                 pair_info["Tumor"]["log_path"] = self.log_path
                 tasks.append(new_Annovar2(infodict=pair_info,
                                           dry_run=self.dry_run))
+            return tasks
+        elif antype == "germline_gemini":
+            from GermlinePipelines_to_gemini import new_gemini_part
+            tasks = []
+            for sample_name, sample_info in df.get_output_file_path(self.odir).items():
+                sample_info["odir"] = self.odir
+                sample_info["log_path"] = self.log_path
+                tasks.append(new_gemini_part(infodict=sample_info,
+                                             dry_run=self.dry_run))
+            return tasks
+        elif antype == "somatic_gemini":
+            from SomaticPipelines_to_gemini import new_gemini_part
+            tasks = []
+            for sample_name, sample_info in df.get_output_file_path(self.odir).items():
+                sample_info["odir"] = self.odir
+                sample_info["log_path"] = self.log_path
+                tasks.append(new_gemini_part(infodict=sample_info,
+                                             dry_run=self.dry_run))
             return tasks
         else:
             raise Exception

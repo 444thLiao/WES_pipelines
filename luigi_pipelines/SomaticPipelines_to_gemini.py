@@ -67,21 +67,21 @@ class new_gemini_part(gemini_part):
         return vep_part(sampleID=self.sampleID,
                         dry_run=self.dry_run)
 
-
-class workflow(luigi.Task):
-    x = luigi.Parameter()
-
-    def requires(self):
-        samples_IDs = str(self.x).split(',')
-
-        pair_bucket = defaultdict(list)
-        for _x in samples_IDs:
-            pair_bucket[pfn(_x, 'pair_name')].append(_x)
-        global pair_bucket
-        ###{'XK-2': ['XK-2T_S20', 'XK-2W_S17'],'XK-8': ['XK-8T_S21', 'XK-8W_S18']}
-
-        samples_IDs += [_x for _x in pair_bucket.keys()]
-        for i in samples_IDs:
-            yield new_gemini_part(sampleID=i)
+#
+# class workflow(luigi.Task):
+#     x = luigi.Parameter()
+#
+#     def requires(self):
+#         samples_IDs = str(self.x).split(',')
+#
+#         pair_bucket = defaultdict(list)
+#         for _x in samples_IDs:
+#             pair_bucket[pfn(_x, 'pair_name')].append(_x)
+#         global pair_bucket
+#         ###{'XK-2': ['XK-2T_S20', 'XK-2W_S17'],'XK-8': ['XK-8T_S21', 'XK-8W_S18']}
+#
+#         samples_IDs += [_x for _x in pair_bucket.keys()]
+#         for i in samples_IDs:
+#             yield new_gemini_part(sampleID=i)
 
 # python -m luigi --module SomaticPipelines_for_NY workflow --x XK-8T_S21,XK-2T_S20,XK-2W_S17,XK-8W_S18 --parallel-scheduling --workers 12 --local-scheduler
