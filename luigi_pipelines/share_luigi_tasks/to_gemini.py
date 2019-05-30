@@ -3,7 +3,7 @@ import luigi
 from pre_pipelines_analysis.cal_Cov_script_version import bed2info
 from special_fun import Add_cov_ino_in_vcf as P_vcf
 from special_fun.vcf_2_bed import vcf2bed
-from .. import config, run_cmd
+from luigi_pipelines import config, run_cmd
 
 
 class luigi_vcf2bed(luigi.Task):
