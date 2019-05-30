@@ -138,16 +138,17 @@ def Add_in_vcf_SO(infofile,
 
     vcf_readed.infos = new_infos
 
-    vcf_writer = vcf.Writer(open(output_vcf, 'w'), vcf_readed)
+    vcf_writer = vcf.Writer(open(output_vcf, 'w'),
+                            vcf_readed)
 
-    for record in vcf_readed:
+    for record in tqdm(vcf_readed):
         if record.is_snp:
             # SNP instead of indel
             query_index = record.CHROM + str(record.POS - 1) + str(record.REF)
             row = info_df.loc[query_index, :]
             if len(row.shape) == 2:
                 # if multiple index occur
-                row = row[0, :]
+                row = row.iloc[0, :]
 
             ref_base = row["Reference"]  # should same as record.REF
             ref_cov = row[ref_base.upper()]
