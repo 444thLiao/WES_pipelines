@@ -147,11 +147,11 @@ def Add_in_vcf_SO(infofile,
             row = info_df.loc[query_index, :]
             if len(row.shape) == 2:
                 # if multiple index occur
-                row = row[0,:]
+                row = row[0, :]
 
             ref_base = row["Reference"]  # should same as record.REF
             ref_cov = row[ref_base.upper()]
-            alt_cov = row[record.ALT[0].upper()]
+            alt_cov = row[str(record.ALT[0]).upper()]
 
             SAD = [int(ref_cov),
                    int(alt_cov)]

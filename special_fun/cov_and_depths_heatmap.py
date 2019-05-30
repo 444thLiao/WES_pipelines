@@ -9,7 +9,7 @@ import pandas
 
 normalize_df = pandas.read_excel('/home/liaoth/project/180104_XK/180104_XK总体评估结果.xlsx')
 avg_depth = {s_n: depth for s_n, depth in normalize_df.loc[:, ['Sample ID', 'avg_depth']].values}
-print avg_depth
+print(avg_depth)
 avg_depth['25W'] = 178.105
 
 # count = 1
