@@ -54,22 +54,22 @@ class main_entry(luigi.Task):
                                           dry_run=self.dry_run))
             return tasks
         elif antype == "germline_gemini":
-            from GermlinePipelines_to_gemini import new_gemini_part
+            from GermlinePipelines_to_gemini import gemini_part
             tasks = []
             for sample_name, sample_info in df.get_output_file_path(self.odir).items():
                 sample_info["odir"] = self.odir
                 sample_info["log_path"] = self.log_path
-                tasks.append(new_gemini_part(infodict=sample_info,
+                tasks.append(gemini_part(infodict=sample_info,
                                              dry_run=self.dry_run))
             print(tasks)
             return tasks
         elif antype == "somatic_gemini":
-            from SomaticPipelines_to_gemini import new_gemini_part
+            from SomaticPipelines_to_gemini import gemini_part
             tasks = []
             for sample_name, sample_info in df.get_output_file_path(self.odir).items():
                 sample_info["odir"] = self.odir
                 sample_info["log_path"] = self.log_path
-                tasks.append(new_gemini_part(infodict=sample_info,
+                tasks.append(gemini_part(infodict=sample_info,
                                              dry_run=self.dry_run))
 
             return tasks

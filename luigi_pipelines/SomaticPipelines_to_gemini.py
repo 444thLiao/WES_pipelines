@@ -47,7 +47,7 @@ class Add_cov_infos_PA(Add_cov_infos):
 
 
 #########15
-class new_vt_part(vt_part):
+class vt_part(vt_part):
     def requires(self):
         if self.sampleID in pair_bucket:
             pair_value = pair_bucket[self.sampleID]
@@ -57,12 +57,12 @@ class new_vt_part(vt_part):
             return [Add_cov_infos_SO(sampleID=self.sampleID)]
 
 
-class new_vep_part(vep_part):
+class vep_part(vep_part):
     def requires(self):
         return vt_part(sampleID=self.sampleID, dry_run=self.dry_run)
 
 
-class new_gemini_part(gemini_part):
+class gemini_part(gemini_part):
     def requires(self):
         return vep_part(sampleID=self.sampleID,
                         dry_run=self.dry_run)
