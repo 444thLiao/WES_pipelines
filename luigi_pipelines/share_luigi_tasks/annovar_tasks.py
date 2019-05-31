@@ -1,7 +1,7 @@
 import luigi
 
 from toolkit import run_cmd, valid_path
-from .. import config
+from luigi_pipelines import config
 
 #########14
 class Annovar1(luigi.Task):

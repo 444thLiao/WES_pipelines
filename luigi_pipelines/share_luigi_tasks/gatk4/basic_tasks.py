@@ -3,8 +3,8 @@ from os.path import dirname
 import luigi
 
 from toolkit import run_cmd, valid_path
-from .. import config
-from .. import sorted_bam
+from luigi_pipelines import config
+from luigi_pipelines.share_luigi_tasks import sorted_bam
 
 
 #########2

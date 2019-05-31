@@ -4,7 +4,7 @@ from os.path import dirname
 import luigi
 
 from toolkit import run_cmd, valid_path
-from .. import config
+from luigi_pipelines import config
 
 
 class QC_trimmomatic(luigi.Task):
