@@ -3,58 +3,58 @@ import pysam
 import vcf
 from tqdm import tqdm
 
-
-def special_cal_cov(bam, pos_list, fasta_file_path):
-    """
-    Using a pos_list from vcf, we fetch its coverage info from bam and fasta_file, and return a dict for easily searching.
-
-    :param bam: bam file absolutely path. Maybe it is multi-bam list.
-    :param pos_list: positions info list. e.g [('chr1',100),('chr2',200),] Single pos info. !!!!!!! 0-coordination.
-    :return: A dict. {('chr1',100): [(ref_base,ref_num) , (alt_base,alt_num) , (alt2_base,alt2_num)]
-                      ('chr2',200): [(),()] }
-            If bam is a list, then return a tuple with dict inside.
-    """
-
-    def _parse_bam(bam, pos_list, fasta_file_path):
-        all_cov_info = {}
-        fastafile = pysam.FastaFile(filename=fasta_file_path)
-        bam_file = pysam.AlignmentFile(bam, 'rb')
-        for pos in tqdm(pos_list):
-            cov_info = bam_file.count_coverage(contig=pos[0],
-                                               start=int(pos[1]),
-                                               end=int(pos[1]) + 1,
-                                               quality_threshold=0)
-            # four array.arrays of the same length in order A C G T.
-            # So it likes (array('L', [0L]), array('L', [0L]), array('L', [0L]), array('L', [985L]))
-            # Mean it has 985 T and doesn't has other.
-            cov_info_parsed = list(map(lambda x: int(x[0]),
-                                       cov_info))
-            cov_info_dict = dict(zip("ACGT",
-                                     cov_info_parsed))
-
-            ref_base = fastafile.fetch(pos[0],
-                                       pos[1],
-                                       pos[1] + 1).upper()
-            all_cov_info[pos] = []
-            all_cov_info[pos].append((ref_base,
-                                      cov_info_dict[ref_base]))
-
-            cov_info_dict.pop(ref_base)
-            for item in cov_info_dict.items():
-                if item[1] != 0:
-                    all_cov_info[pos].append(tuple(item))
-        return all_cov_info
-
-    if type(bam) == str:
-        cov_info = _parse_bam(bam, pos_list, fasta_file_path)
-        return cov_info
-    else:
-        bucket = []
-        for bam_file in bam:
-            bucket.append(_parse_bam(bam_file, pos_list, fasta_file_path))
-
-        return tuple(bucket)
-
+#
+# def special_cal_cov(bam, pos_list, fasta_file_path):
+#     """
+#     Using a pos_list from vcf, we fetch its coverage info from bam and fasta_file, and return a dict for easily searching.
+#
+#     :param bam: bam file absolutely path. Maybe it is multi-bam list.
+#     :param pos_list: positions info list. e.g [('chr1',100),('chr2',200),] Single pos info. !!!!!!! 0-coordination.
+#     :return: A dict. {('chr1',100): [(ref_base,ref_num) , (alt_base,alt_num) , (alt2_base,alt2_num)]
+#                       ('chr2',200): [(),()] }
+#             If bam is a list, then return a tuple with dict inside.
+#     """
+#
+#     def _parse_bam(bam, pos_list, fasta_file_path):
+#         all_cov_info = {}
+#         fastafile = pysam.FastaFile(filename=fasta_file_path)
+#         bam_file = pysam.AlignmentFile(bam, 'rb')
+#         for pos in tqdm(pos_list):
+#             cov_info = bam_file.count_coverage(contig=pos[0],
+#                                                start=int(pos[1]),
+#                                                end=int(pos[1]) + 1,
+#                                                quality_threshold=0)
+#             # four array.arrays of the same length in order A C G T.
+#             # So it likes (array('L', [0L]), array('L', [0L]), array('L', [0L]), array('L', [985L]))
+#             # Mean it has 985 T and doesn't has other.
+#             cov_info_parsed = list(map(lambda x: int(x[0]),
+#                                        cov_info))
+#             cov_info_dict = dict(zip("ACGT",
+#                                      cov_info_parsed))
+#
+#             ref_base = fastafile.fetch(pos[0],
+#                                        pos[1],
+#                                        pos[1] + 1).upper()
+#             all_cov_info[pos] = []
+#             all_cov_info[pos].append((ref_base,
+#                                       cov_info_dict[ref_base]))
+#
+#             cov_info_dict.pop(ref_base)
+#             for item in cov_info_dict.items():
+#                 if item[1] != 0:
+#                     all_cov_info[pos].append(tuple(item))
+#         return all_cov_info
+#
+#     if type(bam) == str:
+#         cov_info = _parse_bam(bam, pos_list, fasta_file_path)
+#         return cov_info
+#     else:
+#         bucket = []
+#         for bam_file in bam:
+#             bucket.append(_parse_bam(bam_file, pos_list, fasta_file_path))
+#
+#         return tuple(bucket)
+#
 
 def parsed_vcf2pos_list(vcf_path):
     """
@@ -145,14 +145,18 @@ def Add_in_vcf_SO(infofile,
         if record.is_snp:
             # SNP instead of indel
             query_index = record.CHROM + str(record.POS - 1) + str(record.REF)
-            row = info_df.loc[query_index, :]
-            if len(row.shape) == 2:
-                # if multiple index occur
-                row = row.iloc[0, :]
+            if query_index not in info_df.index:
+                # it means there are np reads here
+                ref_cov, alt_cov = 0, 0
+            else:
+                row = info_df.loc[query_index, :]
+                if len(row.shape) == 2:
+                    # if multiple index occur
+                    row = row.iloc[0, :]
 
-            ref_base = row["Reference"]  # should same as record.REF
-            ref_cov = row[ref_base.upper()]
-            alt_cov = row[str(record.ALT[0]).upper()]
+                ref_base = row["Reference"]  # should same as record.REF
+                ref_cov = row[ref_base.upper()]
+                alt_cov = row[str(record.ALT[0]).upper()]
 
             SAD = [int(ref_cov),
                    int(alt_cov)]
