@@ -83,7 +83,7 @@ class vt_part(luigi.Task):
                                                            '.vt.vcf'))
 
     def run(self):
-        cmdline = "{vt} decompose -s {input_vcf} | {vt} normalize -r {REF}- > {vt_vcf}".format(
+        cmdline = "{vt} decompose -s {input_vcf} | {vt} normalize -r {REF} - > {vt_vcf}".format(
             vt=config.vt_pro,
             input_vcf=self.input().path,
             REF=config.REF_file_path,
@@ -104,9 +104,9 @@ class vep_part(luigi.Task):
                                                            '.vep.vcf.gz'))
 
     def run(self):
-        cmdline = """{vep} -i {vt_vcf} --cache --merged --fasta {REF} --sift b --polyphen b --symbol --numbers --biotype
-        --total_length --canonical --ccds -o {vep_output_vcf} --vcf --hgvs --gene_phenotype --uniprot
-        --force_overwrite --port 3337 --domains --regulatory --protein --tsl --variant_class --fork {threads} --force
+        cmdline = """{vep} -i {vt_vcf} --cache --merged --fasta {REF} --sift b --polyphen b --symbol --numbers --biotype \
+        --total_length --canonical --ccds -o {vep_output_vcf} --vcf --hgvs --gene_phenotype --uniprot \
+        --force_overwrite --port 3337 --domains --regulatory --protein --tsl --variant_class --fork {threads} --force \
         --no_stats >> {vep_log} 2>&1""".format(
             vep=config.vep_pro,
             vt_vcf=self.input().path,
@@ -141,10 +141,10 @@ class gemini_part(luigi.Task):
                                                            '.gemini.db'))
 
     def run(self):
-        cmdline = """{gemini} load --cores {threads} -t VEP -v {vep_output_vcf_gz} {Output_db};
-        {gemini} annotate -f {vep_output_vcf_gz} -a extract
-        -c SAD,SAF,AF,AD,BaseQRankSum,FS,MQRankSum,ReadPosRankSum,SOR
-        -t text,float,float,text,float,float,float,float,float
+        cmdline = """{gemini} load --cores {threads} -t VEP -v {vep_output_vcf_gz} {Output_db}; \
+        {gemini} annotate -f {vep_output_vcf_gz} -a extract \
+        -c SAD,SAF,AF,AD,BaseQRankSum,FS,MQRankSum,ReadPosRankSum,SOR \
+        -t text,float,float,text,float,float,float,float,float \
         -o list,list,list,list,mean,mean,mean,mean,mean {Output_db} >> {gemini_log} 2>&1""".format(
             gemini=config.gemini_pro,
             threads=20,
