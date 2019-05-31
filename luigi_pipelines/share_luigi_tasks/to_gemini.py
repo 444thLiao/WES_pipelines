@@ -79,7 +79,7 @@ class vt_part(luigi.Task):
         return Add_cov_infos(infodict=self.infodict, dry_run=self.dry_run)
 
     def output(self):
-        return luigi.LocalTarget(self.input().path.replace('.added_cov.vcf',
+        return luigi.LocalTarget(self.input().path.replace('.with_cov.vcf',
                                                            '.vt.vcf'))
 
     def run(self):
