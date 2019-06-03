@@ -104,7 +104,7 @@ class vep_part(luigi.Task):
 
     def run(self):
         cmdline = """{vep} -i {vt_vcf} -o {vep_output_vcf} --vcf --cache --merged --fasta {REF} --sift b --polyphen b --symbol --numbers --biotype \
-        --total_length --canonical --ccds --gene_phenotype --uniprot \
+        --total_length --canonical --ccds --gene_phenotype --uniprot --assembly GRCh37 \
         --force_overwrite --offline --domains --regulatory --protein --tsl --variant_class --fork {threads} --force \
         --no_stats >> {vep_log} 2>&1""".format(
             vep=config.vep_pro,
