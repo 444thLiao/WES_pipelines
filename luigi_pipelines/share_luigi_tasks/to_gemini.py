@@ -91,7 +91,6 @@ class vt_part(luigi.Task):
         )
         run_cmd(cmdline, dry_run=self.dry_run)
 
-
 class vep_part(luigi.Task):
     infodict = luigi.DictParameter()
     dry_run = luigi.BoolParameter(default=False)
@@ -104,9 +103,9 @@ class vep_part(luigi.Task):
                                                            '.vep.vcf.gz'))
 
     def run(self):
-        cmdline = """{vep} -i {vt_vcf} --cache --merged --fasta {REF} --sift b --polyphen b --symbol --numbers --biotype \
-        --total_length --canonical --ccds -o {vep_output_vcf} --vcf --hgvs --gene_phenotype --uniprot \
-        --force_overwrite --port 3337 --domains --regulatory --protein --tsl --variant_class --fork {threads} --force \
+        cmdline = """{vep} -i {vt_vcf} -o {vep_output_vcf} --vcf --cache --merged --fasta {REF} --sift b --polyphen b --symbol --numbers --biotype \
+        --total_length --canonical --ccds --gene_phenotype --uniprot \
+        --force_overwrite --offline --domains --regulatory --protein --tsl --variant_class --fork {threads} --force \
         --no_stats >> {vep_log} 2>&1""".format(
             vep=config.vep_pro,
             vt_vcf=self.input().path,
