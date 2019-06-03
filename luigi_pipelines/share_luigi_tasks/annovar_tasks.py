@@ -15,6 +15,7 @@ class Annovar1(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(self.input().path.rpartition('.bam')[0] + '.merged.av')
+
     def run(self):
         valid_path(self.output().path, check_ofile=1)
         cmdline = "%s/convert2annovar.pl %s --includeinfo -format vcf4 > %s" % (
@@ -39,11 +40,13 @@ class Annovar2(luigi.Task):
         if type(self.input()) == dict:
             ofiles = [luigi.LocalTarget(
                 _input.path.replace('.merged.av',
-                                    '.merged.anno.%s_multianno.csv' % config.genome_version)) for _input in self.input().values()]
+                                    '.merged.anno.%s_multianno.csv' % config.genome_version))
+                for _input in self.input().values()]
         elif type(self.input()) == list:
             ofiles = [luigi.LocalTarget(
                 _input.path.replace('.merged.av',
-                                    '.merged.anno.%s_multianno.csv' % config.genome_version)) for _input in self.input()]
+                                    '.merged.anno.%s_multianno.csv' % config.genome_version))
+                for _input in self.input()]
         else:
             return [luigi.LocalTarget(
                 self.input().path.replace('.merged.av',
@@ -56,7 +59,7 @@ class Annovar2(luigi.Task):
             prefix = _input.path.rpartition('.merged.av')[0]
             cmdline = "{annovar_dir}/table_annovar.pl {input_f} {annovar_db} -buildver {genome_version} -protocol {db_names} -operation g,r,r,f,f,f,f,f,f -nastring . --remove --otherinfo --csvout --thread {annovar_thread} --outfile {output_f} --argument '-exonicsplicing -splicing 25',,,,,,,,".format(
                 annovar_dir=config.annovar_pro,
-                input_f=self.input().path,
+                input_f=_input.path,
                 annovar_db=config.annovar_db,
                 genome_version=config.genome_version,
                 db_names=config.db_names,

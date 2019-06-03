@@ -3,13 +3,14 @@ from os.path import dirname
 
 import luigi
 
-from toolkit import run_cmd, valid_path
 from luigi_pipelines import config
+from toolkit import run_cmd, valid_path
 
 
 class QC_trimmomatic(luigi.Task):
     PE1 = luigi.Parameter()
     PE2 = luigi.Parameter(default=None)
+    infodict = luigi.DictParameter()
     dry_run = luigi.BoolParameter(default=False)
 
     def output(self):
@@ -62,6 +63,7 @@ class GenerateSam_pair(luigi.Task):
         input2 = self.infodict.get("path_R2", "")
         return QC_trimmomatic(PE1=input1,
                               PE2=input2,
+                              infodict=self.infodict,
                               dry_run=self.dry_run)
 
     def output(self):
@@ -97,7 +99,10 @@ class Convertbam(luigi.Task):
         return luigi.LocalTarget(self.input().path.replace('.sam', '.bam'))
 
     def run(self):
-        cmdline = "samtools view -F 0x100 -bSu %s -o %s" % (self.input().path, self.output().path)
+        if config.samtools_version > 1:
+            cmdline = "samtools view -G 100 -bu %s -o %s" % (self.input().path, self.output().path)
+        else:
+            cmdline = "samtools view -F 0x100 -bSu %s -o %s" % (self.input().path, self.output().path)
         run_cmd(cmdline, dry_run=self.dry_run)
 
 
@@ -113,9 +118,20 @@ class sorted_bam(luigi.Task):
         return luigi.LocalTarget(self.infodict.get("sorted_bam", ""))
 
     def run(self):
-        cmdline = "samtools sort -m {sort_sam_ram} -f -@ {sort_sam_thread} %s %s" % (self.input().path,
-                                                                                     self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        if config.samtools_version > 1:
+            cmdline = "samtools sort -m {sort_sam_ram} -@ {sort_sam_thread} -o {output_path} {input_path} ".format(
+                sort_sam_ram=config.sort_sam_ram,
+                sort_sam_thread=config.sort_sam_thread,
+                output_path=self.output().path,
+                input_path=self.input().path)
+        else:
+            cmdline = "samtools sort -m {sort_sam_ram} -f -@ {sort_sam_thread}  {input_path} {output_path} ".format(
+                sort_sam_ram=config.sort_sam_ram,
+                sort_sam_thread=config.sort_sam_thread,
+                output_path=self.output().path,
+                input_path=self.input().path)
+        run_cmd(cmdline,
+                dry_run=self.dry_run)
         cmdline = 'samtools index %s' % self.output().path
         run_cmd(cmdline, dry_run=self.dry_run)
 
@@ -133,13 +149,15 @@ class MarkDuplicate(luigi.Task):
         return luigi.LocalTarget(self.input().path.replace('_sorted.bam', '.dedup.bam'))
 
     def run(self):
+        valid_path(self.output().path,check_ofile=1)
         if config.PCR_ON:
             cmdline = "touch %s" % self.output().path
         else:
-            cmdline = "java -Xmx2g -jar {pircard_jar} MarkDuplicates INPUT=%s OUTPUT=%s METRICS_FILE=%s/dedup_metrics.txt CREATE_INDEX=true REMOVE_DUPLICATES=true AS=true" % (
-                self.input().path,
-                self.output().path,
-                dirname(self.output().path))
+            cmdline = "java -Xmx2g -jar {pircard_jar} MarkDuplicates INPUT={input} OUTPUT={output} METRICS_FILE={odir}/dedup_metrics.txt CREATE_INDEX=true REMOVE_DUPLICATES=true AS=true".format(
+                pircard_jar=config.pircard_jar,
+                input=self.input().path,
+                output=self.output().path,
+                odir=os.path.dirname(self.output().path))
         run_cmd(cmdline, dry_run=self.dry_run)
 
 
@@ -159,6 +177,7 @@ class RealignerTargetCreator(luigi.Task):
                                                               '.realign.intervals'))
 
     def run(self):
+        valid_path(self.output().path,check_ofile=1)
         if config.PCR_ON:
             input_f = self.input()[1].path
         else:

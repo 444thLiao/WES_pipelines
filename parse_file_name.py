@@ -12,7 +12,8 @@ import setting as config
 
 class fileparser():
     def __init__(self, filename):
-        self.filename = filename
+        filename = os.path.abspath(filename)
+
         self.df = pd.read_csv(filename, index_col=None)
 
         self.cols,self.df = validate_df(self.df,filename)
@@ -119,10 +120,11 @@ def validate_df(df,filename):
         raise Exception("sample_name has duplicated.")
 
     chdir = os.path.dirname(os.path.abspath(filename))
-    os.chdir(chdir)
+    # os.chdir(chdir)
+    # print('chdir',chdir)
     for idx, row in df.iterrows():
         # auto implement filepath
         # so easy~~~
-        row["path_R1"] = os.path.abspath(row["path_R1"])
-        row["path_R2"] = os.path.abspath(row["path_R2"])
+        row["path_R1"] = os.path.join(chdir,row["path_R1"])
+        row["path_R2"] = os.path.join(chdir,row["path_R2"])
     return columns_values,df
