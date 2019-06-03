@@ -96,32 +96,39 @@ class MuTect2_single(luigi.Task):
 
 
 class new_Annovar1(Annovar1):
+    mode = luigi.Parameter()
 
     def requires(self):
-        normal_dict = self.infodict["Normal"]
-        tumor_dict = self.infodict["Tumor"]
+        if self.mode == 'pair':
 
-        tasks = {}
-        tasks["pair"] = MuTect2_pair(infodict_N=normal_dict,
-                                     infodict_T=tumor_dict,
-                                     dry_run=self.dry_run)
-        tasks["single_N"] = MuTect2_single(infodict=normal_dict,
-                                           dry_run=self.dry_run)
-        tasks["single_T"] = MuTect2_single(infodict=tumor_dict,
-                                           dry_run=self.dry_run)
-        return tasks
+            normal_dict = self.infodict["Normal"]
+            tumor_dict = self.infodict["Tumor"]
 
-    def output(self):
-        tasks = []
-        for localtarget in self.input():
-            tasks.append(luigi.LocalTarget(localtarget.path.rpartition('.bam')[0] + '.merged.av'))
-        return tasks
+            return MuTect2_pair(infodict_N=normal_dict,
+                                infodict_T=tumor_dict,
+                                dry_run=self.dry_run)
+        elif self.mode == 'single':
 
+            return MuTect2_single(infodict=self.infodict,
+                                  dry_run=self.dry_run)
+        else:
+            raise Exception
 
 class new_Annovar2(Annovar2):
+
     def requires(self):
-        return new_Annovar1(infodict=self.infodict,
-                            dry_run=self.dry_run)
+        # todo: test....
+        tasks = {}
+        tasks["pair"] = new_Annovar1(infodict=self.infodict,
+                                     dry_run=self.dry_run,
+                                     mode='pair')
+        tasks["single_N"] = new_Annovar1(infodict=self.infodict["Normal"],
+                                         dry_run=self.dry_run,
+                                         mode='single')
+        tasks["single_T"] = new_Annovar1(infodict=self.infodict["Tumor"],
+                                         dry_run=self.dry_run,
+                                         mode='single')
+        return tasks
 
 #
 # class workflow(luigi.Task):

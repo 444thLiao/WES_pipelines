@@ -1,9 +1,9 @@
 import luigi
 
+from luigi_pipelines import config, run_cmd
 from pre_pipelines_analysis.cal_Cov_script_version import bed2info
 from special_fun import Add_cov_ino_in_vcf as P_vcf
 from special_fun.vcf_2_bed import vcf2bed
-from luigi_pipelines import config, run_cmd
 
 
 class luigi_vcf2bed(luigi.Task):
@@ -48,7 +48,8 @@ class luigi_bed2info(luigi.Task):
 
 #########14
 class Add_cov_infos(luigi.Task):
-    infodict = luigi.DictParameter()
+    infodict_N = luigi.DictParameter(default=None)
+    infodict_T = luigi.DictParameter(default=None)
     dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):
@@ -58,16 +59,18 @@ class Add_cov_infos(luigi.Task):
         #         luigi_bed2info(infodict=self.infodict,dry_run=self.dry_run)]
 
     def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.vcf',
-                                                               '.with_cov.vcf'))
+        # fixme
+        return luigi.LocalTarget(self.input().path.replace('.vcf',
+                                                           '.with_cov.vcf'))
 
     def run(self):
-        merged_vcf = self.input()[0].path
-        cov_info = self.input()[1].path
+        # fixme
+        merged_vcf = self.input().path
+        cov_info = self.input().path
 
         P_vcf.Add_in_vcf_SO(infofile=cov_info,
                             vcf_path=merged_vcf,
-                            output_vcf=self.output().path,)
+                            output_vcf=self.output().path, )
 
 
 #########15
@@ -91,6 +94,7 @@ class vt_part(luigi.Task):
         )
         run_cmd(cmdline, dry_run=self.dry_run)
 
+
 class vep_part(luigi.Task):
     infodict = luigi.DictParameter()
     dry_run = luigi.BoolParameter(default=False)
@@ -111,7 +115,7 @@ class vep_part(luigi.Task):
             vt_vcf=self.input().path,
             REF=config.REF_file_path,
             vep_output_vcf=self.input().path.replace('.vt.vcf', '.vep.vcf'),
-            threads=20,
+            threads=config.vep_thread,
             vep_log=self.input().path.replace('.vt.vcf', '.vep.log'))
         run_cmd(cmdline, dry_run=self.dry_run)
 
@@ -132,22 +136,37 @@ class gemini_part(luigi.Task):
     dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):
-        return vep_part(infodict=self.infodict,
-                        dry_run=self.dry_run)
+        pass
+        # return vep_part(infodict=self.infodict,
+        #                 dry_run=self.dry_run)
 
     def output(self):
-        return luigi.LocalTarget(self.input().path.replace('.vep.vcf.gz',
-                                                           '.gemini.db'))
+        if type(self.input()) == dict:
+            ofiles = [luigi.LocalTarget(
+                _input.path.replace('.vep.vcf.gz',
+                                    '.gemini.db'))
+                for _input in self.input().values()]
+        elif type(self.input()) == list:
+            ofiles = [luigi.LocalTarget(
+                _input.path.replace('.vep.vcf.gz',
+                                    '.gemini.db'))
+                for _input in self.input()]
+        else:
+            return [luigi.LocalTarget(
+                self.input().path.replace('.vep.vcf.gz',
+                                          '.gemini.db'))]
+        return ofiles
 
     def run(self):
-        cmdline = """{gemini} load --cores {threads} -t VEP -v {vep_output_vcf_gz} {Output_db}; \
+        for _output, _input in zip(self.output(), self.input()):
+            cmdline = """{gemini} load --cores {threads} -t VEP -v {vep_output_vcf_gz} {Output_db}; \
         {gemini} annotate -f {vep_output_vcf_gz} -a extract \
         -c SAD,SAF,AF,AD,BaseQRankSum,FS,MQRankSum,ReadPosRankSum,SOR \
         -t text,float,float,text,float,float,float,float,float \
         -o list,list,list,list,mean,mean,mean,mean,mean {Output_db} >> {gemini_log} 2>&1""".format(
-            gemini=config.gemini_pro,
-            threads=20,
-            vep_output_vcf_gz=self.input().path,
-            Output_db=self.output().path,
-            gemini_log=self.output().path + '.log')
-        run_cmd(cmdline, dry_run=self.dry_run)
+                gemini=config.gemini_pro,
+                threads=config.gemini_thread,
+                vep_output_vcf_gz=_input.path,
+                Output_db=_output.path,
+                gemini_log=_output.path + '.log')
+            run_cmd(cmdline, dry_run=self.dry_run)

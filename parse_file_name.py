@@ -15,8 +15,7 @@ class fileparser():
         self.filename = filename
         self.df = pd.read_csv(filename, index_col=None)
 
-        self.cols = validate_df(self.df)
-        self.df.fillna('')
+        self.cols,self.df = validate_df(self.df,filename)
         self.df = self.df.set_index("sample_name")
 
     def get_attr(self, col):
@@ -108,7 +107,7 @@ class fileparser():
         return sample_dict
 
 
-def validate_df(df):
+def validate_df(df,filename):
     template_file = os.path.join(os.path.dirname(__file__),
                                  "data_input.template")
     columns_values = open(template_file).read().strip('\n').split(',')
@@ -118,4 +117,12 @@ def validate_df(df):
 
     if df["sample_name"].duplicated().any():
         raise Exception("sample_name has duplicated.")
-    return columns_values
+
+    chdir = os.path.dirname(os.path.abspath(filename))
+    os.chdir(chdir)
+    for idx, row in df.iterrows():
+        # auto implement filepath
+        # so easy~~~
+        row["path_R1"] = os.path.abspath(row["path_R1"])
+        row["path_R2"] = os.path.abspath(row["path_R2"])
+    return columns_values,df

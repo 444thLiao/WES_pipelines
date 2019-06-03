@@ -1,7 +1,6 @@
-from collections import defaultdict
-
 import luigi
 
+from luigi_pipelines import config
 from luigi_pipelines.SomaticPipelines import MuTect2_single, PrintReads, MuTect2_pair
 from luigi_pipelines.share_luigi_tasks import Add_cov_infos, gemini_part, vt_part, vep_part
 from special_fun import Add_cov_ino_in_vcf as P_vcf
@@ -9,8 +8,10 @@ from special_fun import Add_cov_ino_in_vcf as P_vcf
 
 class Add_cov_infos_SO(Add_cov_infos):
     def requires(self):
-        return [MuTect2_single(sample_NT=self.sampleID, dry_run=self.dry_run),
-                PrintReads(sampleID=self.sampleID, dry_run=self.dry_run)]
+        return [MuTect2_single(infodict=self.infodict,
+                               dry_run=self.dry_run),
+                PrintReads(infodict=self.infodict,
+                           dry_run=self.dry_run)]
 
     def output(self):
         return luigi.LocalTarget(self.input()[0].path.replace('.mt2.bam', '.mt2.added_cov.vcf'))
@@ -19,7 +20,7 @@ class Add_cov_infos_SO(Add_cov_infos):
         P_vcf.Add_in_vcf_SO(self.input()[1].path,
                             self.input()[0].path.replace('.bam', '.vcf'),
                             self.output().path,
-                            REF_file_path)
+                            config.REF_file_path)
 
 
 class Add_cov_infos_PA(Add_cov_infos):
@@ -43,29 +44,54 @@ class Add_cov_infos_PA(Add_cov_infos):
         P_vcf.Add_in_vcf_PA([self.input()[1].path, self.input()[2].path],
                             self.input()[0].path.replace('.bam', '.vcf'),
                             self.output().path,
-                            REF_file_path)
+                            config.REF_file_path)
 
 
 #########15
 class vt_part(vt_part):
-    def requires(self):
-        if self.sampleID in pair_bucket:
-            pair_value = pair_bucket[self.sampleID]
-            return [Add_cov_infos_PA(sampleID=','.join(pair_value))]
+    mode = luigi.Parameter()
 
+    def requires(self):
+        if self.mode == 'pair':
+
+            normal_dict = self.infodict["Normal"]
+            tumor_dict = self.infodict["Tumor"]
+
+            return Add_cov_infos_PA(infodict_N=normal_dict,
+                                    infodict_T=tumor_dict,
+                                    dry_run=self.dry_run)
+        elif self.mode == 'single':
+
+            return Add_cov_infos_SO(infodict=self.infodict,
+                                    dry_run=self.dry_run)
         else:
-            return [Add_cov_infos_SO(sampleID=self.sampleID)]
+            raise Exception
 
 
 class vep_part(vep_part):
+    mode = luigi.Parameter()
+
     def requires(self):
-        return vt_part(sampleID=self.sampleID, dry_run=self.dry_run)
+        return vt_part(infodict=self.infodict,
+                       dry_run=self.dry_run,
+                       mode=self.mode)
 
 
 class gemini_part(gemini_part):
+
     def requires(self):
-        return vep_part(sampleID=self.sampleID,
-                        dry_run=self.dry_run)
+        # todo: test....
+        tasks = {}
+        tasks["pair"] = vep_part(infodict=self.infodict,
+                                 dry_run=self.dry_run,
+                                 mode='pair')
+        tasks["single_N"] = vep_part(infodict=self.infodict["Normal"],
+                                     dry_run=self.dry_run,
+                                     mode='single')
+        tasks["single_T"] = vep_part(infodict=self.infodict["Tumor"],
+                                     dry_run=self.dry_run,
+                                     mode='single')
+        return tasks
 
 #
 # class workflow(luigi.Task):

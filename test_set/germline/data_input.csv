@@ -1,0 +1,2 @@
+sample_name,project_name,source_name,path_R1,path_R2,Somatic,sequencing_type
+s1,test_germline,s1,s1_1.fq.gz,s1_2.fq.gz,N,WES

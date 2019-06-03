@@ -81,65 +81,40 @@ class MuTect2_single(MuTect2_single):
         run_cmd(cmdline, dry_run=self.dry_run)
 
 
+
 class new_Annovar1(Annovar1):
+    mode = luigi.Parameter()
 
     def requires(self):
-        normal_dict = self.infodict["Normal"]
-        tumor_dict = self.infodict["Tumor"]
+        if self.mode == 'pair':
 
-        tasks = {}
-        tasks["pair"] = MuTect2_pair(infodict_N=normal_dict,
-                                     infodict_T=tumor_dict,
-                                     dry_run=self.dry_run)
-        tasks["single_N"] = MuTect2_single(infodict=normal_dict,
-                                           dry_run=self.dry_run)
-        tasks["single_T"] = MuTect2_single(infodict=tumor_dict,
-                                           dry_run=self.dry_run)
-        return tasks
+            normal_dict = self.infodict["Normal"]
+            tumor_dict = self.infodict["Tumor"]
 
-    def output(self):
-        tasks = []
-        for localtarget in self.input():
-            tasks.append(luigi.LocalTarget(localtarget.path.rpartition('.bam')[0] + '.merged.av'))
-        return tasks
+            return MuTect2_pair(infodict_N=normal_dict,
+                                infodict_T=tumor_dict,
+                                dry_run=self.dry_run)
+        elif self.mode == 'single':
 
+            return MuTect2_single(infodict=self.infodict,
+                                  dry_run=self.dry_run)
+        else:
+            raise Exception
 
 class new_Annovar2(Annovar2):
-    def requires(self):
-        return new_Annovar1(infodict=self.infodict,
-                            dry_run=self.dry_run)
 
-#
-# class workflow(luigi.Task):
-#     x = luigi.Parameter()
-#
-#     def requires(self):
-#         samples_IDs = str(self.x).split(',')
-#
-#         pair_bucket = defaultdict(list)
-#         for _x in samples_IDs:
-#             pair_bucket[pfn(_x, 'pair_name')].append(_x)
-#         adjust_multiple = []
-#         for each in pair_bucket.keys():
-#             if len(pair_bucket[each]) > 2:
-#                 tmp = pair_bucket[each]
-#                 only_normal = [_ for _ in tmp if pfn(_, 'mt2_for') == NORMAL_SIG][0]
-#                 for _each in tmp:
-#                     if pfn(_each, 'mt2_for') == TUMOR_SIG and pfn(_each, 'sample_name').replace(TUMOR_SIG, '') != each:
-#                         adjust_multiple.append((pfn(_each, 'sample_name').replace(TUMOR_SIG, ''), [only_normal, _each]))
-#                     elif pfn(_each, 'mt2_for') == TUMOR_SIG and pfn(_each, 'sample_name').replace(TUMOR_SIG,
-#                                                                                                   '') == each:
-#                         adjust_multiple.append((each, [only_normal, _each]))
-#         pair_bucket.update(dict(adjust_multiple))
-#         global pair_bucket
-#         ###{'XK-2': ['XK-2T_S20', 'XK-2W_S17'],'XK-8': ['XK-8T_S21', 'XK-8W_S18']}
-#
-#         samples_IDs += [_x for _x in pair_bucket.keys()]
-#
-#         if debug_:
-#             import ipdb;
-#             ipdb.set_trace()
-#         for i in samples_IDs:
-#             yield new_Annovar2(sample_ID=i)
+    def requires(self):
+        # todo: test....
+        tasks = {}
+        tasks["pair"] = new_Annovar1(infodict=self.infodict,
+                                     dry_run=self.dry_run,
+                                     mode='pair')
+        tasks["single_N"] = new_Annovar1(infodict=self.infodict["Normal"],
+                                         dry_run=self.dry_run,
+                                         mode='single')
+        tasks["single_T"] = new_Annovar1(infodict=self.infodict["Tumor"],
+                                         dry_run=self.dry_run,
+                                         mode='single')
+        return tasks
 
 # python -m luigi --module SomaticPipelines_for_NY workflow --x XK-8T_S21,XK-2T_S20,XK-2W_S17,XK-8W_S18 --parallel-scheduling --workers 12 --local-scheduler

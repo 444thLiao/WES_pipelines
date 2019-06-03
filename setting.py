@@ -11,7 +11,7 @@
 
 ###### server programe path
 vt_pro = '/home/liaoth/tools/vt/vt'
-vep_pro = '/home/liaoth/tools/ensembl-vep-release-91/vep'
+vep_pro = '/home/liaoth/tools/ensembl-vep/vep'
 bgzip_pro = '/usr/bin/bgzip'
 tabix_pro = '/usr/bin/tabix'
 gemini_pro = '/usr/local/bin/gemini'
@@ -52,6 +52,8 @@ sort_sam_ram = "60G"
 sort_sam_thread = 10
 gatk_thread = 20
 annovar_thread = 20
+gemini_thread = 20
+vep_thread = 20
 ## DB files, Normaly don't need to change.
 annovar_db = "/home/liaoth/tools/annovar/humandb/"
 REF_file_path = '/home/db_public/hg19/ucsc.hg19.fasta'
