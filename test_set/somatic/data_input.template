@@ -1,3 +1,0 @@
-sample_name,project_name,source_name,path_R1,path_R2,Somatic,sequencing_type
-N1,test_somatic,someone,N1_1.fq.gz,N1_2.fq.gz,N,WES
-T1,test_somatic,someone,T1_1.fq.gz,T1_2.fq.gz,T,WES

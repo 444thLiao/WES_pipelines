@@ -1,0 +1,25 @@
+
+20190604
+Tianhua Liao
+# This part is mainly aim to replace the output vcf as html
+
+#############Command Lines########################
+### 1.decomposition, split, left-align, and trim their variants.
+### 2.compressed and indexed using bgzip and tabix
+
+vt decompose -s 1_S1.vcf | vt normalize -r ucsc.hg19.fasta - > 1_S1.vt.vcf
+
+
+bgzip -c {vep_output_vcf} > {vep_output_vcf_gz}
+tabix -p vcf {vep_output_vcf_gz}
+
+
+#############Command Lines########################
+2.5?? configure the configuration/toml of pcgr?
+
+#############Command Lines########################
+### 3.run pcgr without docker
+
+pcgr.py [options] {pcgr_dir} {odir} {pcgr_conf} {prefix} --input_vcf {infile} --force_overwrite --no-docker
+
+

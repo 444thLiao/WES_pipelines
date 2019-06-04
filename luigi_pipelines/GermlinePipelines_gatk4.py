@@ -114,8 +114,8 @@ class new_Annovar1(Annovar1):
 
 class new_Annovar2(Annovar2):
     def requires(self):
-        return new_Annovar1(infodict=self.infodict,
-                            dry_run=self.dry_run)
+        return [new_Annovar1(infodict=self.infodict,
+                            dry_run=self.dry_run)]
 
 
 if __name__ == '__main__':

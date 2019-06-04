@@ -41,7 +41,7 @@ tabix -p vcf {vep_output_vcf_gz}
 
 #############Command Lines########################
 ### 3.Load it into gemini db and output.
-###
+### This is for varappX
 
 gemini load --cores {threads} -t VEP -v {vep_output_vcf_gz} {Output_db}
 
