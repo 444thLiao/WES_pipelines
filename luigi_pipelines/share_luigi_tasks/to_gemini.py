@@ -1,7 +1,7 @@
 import luigi
 
 from luigi_pipelines import config, run_cmd
-from pre_pipelines_analysis.cal_Cov_script_version import bed2info
+from api.cal_Cov_script_version import bam2info
 from special_fun import Add_cov_ino_in_vcf as P_vcf
 from special_fun.vcf_2_bed import vcf2bed
 
@@ -40,7 +40,7 @@ class luigi_bed2info(luigi.Task):
                                                               '.info'))
 
     def run(self):
-        bed2info(self.input()[0].path,
+        bam2info(self.input()[0].path,
                  self.output().path,
                  self.input()[1].path,
                  config.REF_file_path if not self.ref_file else self.ref_file)
