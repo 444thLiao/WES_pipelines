@@ -10,7 +10,6 @@ __pycache__/
 
 # special
 /tutorial
-setting.py
 test_set/
 # C extensions
 *.so
