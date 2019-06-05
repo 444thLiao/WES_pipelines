@@ -115,7 +115,7 @@ if __name__ == '__main__':
     ref_path = os.path.abspath(args.ref_fasta)
 
     df = fileparser(input_tab)
-    sample_dict = df.get_output_file_path(odir)
+    sample_dict = df.get_full_info(odir)
 
     for sid in sample_dict.keys():
         # todo: could be multiprocessing

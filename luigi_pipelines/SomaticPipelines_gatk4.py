@@ -20,7 +20,7 @@ class MuTect2_pair(MuTect2_pair):
 
     def run(self):
         valid_path(self.output().path, check_ofile=1)
-        prefix = self.output().path.replace('.bam', "")
+        prefix = self.output().path.replace('.vcf', "")
         input_normal = self.input()["normal"].path
         input_tumor = self.input()["tumor"].path
         if config.bed_file_path:
@@ -31,7 +31,7 @@ class MuTect2_pair(MuTect2_pair):
         normal_name = self.infodict_N["SampleID"]
         tumor_name = self.infodict_T["SampleID"]
 
-        cmdline = "{gatk4} Mutect2 --java-options '-Xmx20g' --native-pair-hmm-threads 20 --reference {REF} -I {input_normal} -normal {N_name} -I {input_tumor} -tumor {T_name} --dbsnp {db_snp} --seconds-between-progress-updates 60 --all-site-pls -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {prefix}.vcf -bamout {prefix}.bam {extra_str}".format(
+        cmdline = "{gatk4} Mutect2 --java-options '-Xmx20g' --native-pair-hmm-threads 20 --reference {REF} -I {input_normal} -normal {N_name} -I {input_tumor} -tumor {T_name} --dbsnp {db_snp} --seconds-between-progress-updates 60 --all-site-pls -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {prefix}.vcf -bamout {prefix}.bam {extra_str} ".format(
             REF=config.REF_file_path,
             cosmic=config.cos_snp,
             db_snp=config.db_snp,
@@ -42,8 +42,11 @@ class MuTect2_pair(MuTect2_pair):
             T_name=tumor_name,
             prefix=prefix,
             extra_str=extra_str)
-        run_cmd(cmdline, dry_run=self.dry_run)
-
+        run_cmd(cmdline,
+                dry_run=self.dry_run,
+                log_file=self.infodict_N.get("log_path", None))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)
 
 class MuTect2_single(MuTect2_single):
     def requires(self):
@@ -53,13 +56,14 @@ class MuTect2_single(MuTect2_single):
     def run(self):
         valid_path(self.output().path, check_ofile=1)
         input_f = self.input().path
-        sample_name = self.infodict.get("SampleID", '')
+        sample_name = self.infodict["SampleID"]
+
         if config.bed_file_path:
             extra_str = " --intervals %s" % config.bed_file_path
         else:
             extra_str = ""
 
-        somatic_type = self.infodict.get("Somatic")
+        somatic_type = self.infodict["Somatic"]
         if somatic_type == "N":
             extra_str += ""
             # Normal only
@@ -75,11 +79,14 @@ class MuTect2_single(MuTect2_single):
             REF=config.REF_file_path,
             db_snp=config.db_snp,
             input_tumor=input_f,
-            prefix=input_f.replace('.bam', ''),
+            prefix=self.output().path.replace('.vcf', ''),
             T_name=sample_name,
             extra_str=extra_str)
-        run_cmd(cmdline, dry_run=self.dry_run)
-
+        run_cmd(cmdline,
+                dry_run=self.dry_run,
+                log_file=self.infodict.get("log_path",None))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 class new_Annovar1(Annovar1):
@@ -99,12 +106,11 @@ class new_Annovar1(Annovar1):
             return MuTect2_single(infodict=self.infodict,
                                   dry_run=self.dry_run)
         else:
-            raise Exception
+            raise Exception("wrong input")
 
 class new_Annovar2(Annovar2):
 
     def requires(self):
-        # todo: test....
         tasks = {}
         tasks["pair"] = new_Annovar1(infodict=self.infodict,
                                      dry_run=self.dry_run,

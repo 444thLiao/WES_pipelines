@@ -17,16 +17,17 @@ def run_cmd(cmd, dry_run=False, log_file=None, **kwargs):
     outstream = None
     if type(log_file) == str:
         if os.path.isfile(log_file):
-            if os.path.getsize(log_file) == 0:
+            if os.path.getsize(log_file) != 0:
                 outstream = open(log_file, 'a')
         if outstream is None:
+            valid_path(log_file,check_ofile=True)
             outstream = open(log_file, 'w')
     elif log_file is None:
         outstream = sys.stdout
     else:
         outstream = log_file
 
-    print(cmd)
+    print(cmd, file=outstream)
     outstream.flush()
     if not dry_run:
         check_call(cmd,
@@ -36,7 +37,6 @@ def run_cmd(cmd, dry_run=False, log_file=None, **kwargs):
                    stderr=outstream,
                    **kwargs)
         outstream.flush()
-
 
 def valid_path(in_pth,
                check_size=False,

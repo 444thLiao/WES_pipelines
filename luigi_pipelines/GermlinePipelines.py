@@ -41,7 +41,9 @@ class HaplotypeCaller(luigi.Task):
             extra_str=extra_str,
             db_snp=config.db_snp,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",""))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 #########9
@@ -80,7 +82,9 @@ class SelectVariants(luigi.Task):
             input_f=self.input().path,
             output_f=self.output().path,
             selecttype=selecttype)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",""))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 #########10
@@ -113,7 +117,9 @@ class VariantFiltration(luigi.Task):
             output_f=self.output().path,
             filterExpression=filterExpression,
             object_type=self.object_type)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",""))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 #########13
@@ -140,7 +146,9 @@ class CombineVariants(luigi.Task):
             input_indel=self.input()["indel"].path,
             input_snp=self.input()["snp"].path,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",""))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 class new_Annovar1(Annovar1):

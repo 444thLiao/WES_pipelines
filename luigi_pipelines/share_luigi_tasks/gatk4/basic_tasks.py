@@ -24,14 +24,17 @@ class MarkDuplicate(luigi.Task):
         if config.PCR_ON:
             cmdline = "touch %s" % self.output().path
         else:
-            cmdline = "{gatk4} MarkDuplicates --java-options '-Xmx30g' --INPUT {input_f} --OUTPUT {output_f} --METRICS_FILE {odir}/dedup_metrics.txt --CREATE_INDEX true --REMOVE_DUPLICATES true -AS true".format(
+            cmdline = "{gatk4} MarkDuplicates --java-options '{java_option}' --INPUT {input_f} --OUTPUT {output_f} --METRICS_FILE {odir}/dedup_metrics.txt --CREATE_INDEX true --REMOVE_DUPLICATES true -AS true".format(
                 gatk4=config.gatk_pro,
+                java_option=config.java_option,
                 input_f=self.input().path,
                 output_f=self.output().path,
                 odir=dirname(self.output().path)
             )
 
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",None))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 #########5
@@ -48,15 +51,17 @@ class BaseRecalibrator(luigi.Task):
                                                            '.recal_data.table'))
 
     def run(self):
-        cmdline = "{gatk4} BaseRecalibrator --java-options '-Xmx30g' --reference {REF} --input {input_f} --known-sites {db_snp} --known-sites {known_gold_vcf} --output {output_f}".format(
+        cmdline = "{gatk4} BaseRecalibrator --java-options '{java_option}' --reference {REF} --input {input_f} --known-sites {db_snp} --known-sites {known_gold_vcf} --output {output_f}".format(
             gatk4=config.gatk_pro,
+            java_option=config.java_option,
             REF=config.REF_file_path,
             input_f=self.input().path,
             db_snp=config.db_snp,
             known_gold_vcf=config.known_gold_vcf,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run)
-
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",None))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)
 
 #########6
 class PrintReads(luigi.Task):
@@ -72,13 +77,16 @@ class PrintReads(luigi.Task):
                                                               '.recal_reads.bam'))
 
     def run(self):
-        cmdline = "{gatk4} ApplyBQSR --java-options '-Xmx30g' --reference {REF} --input {input_f} --bqsr-recal-file {recal_base} --output {output_f}".format(
+        cmdline = "{gatk4} ApplyBQSR --java-options '{java_option}' --reference {REF} --input {input_f} --bqsr-recal-file {recal_base} --output {output_f}".format(
             gatk4=config.gatk_pro,
+            java_option=config.java_option,
             REF=config.REF_file_path,
             input_f=self.input()[0].path,
             recal_base=self.input()[1].path,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",None))
         cmdline = 'samtools index -@ %s %s' % (config.sort_sam_thread,
                                                self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",None))
+        if self.dry_run:
+            run_cmd("touch %s" % self.output().path, dry_run=False)

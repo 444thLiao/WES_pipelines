@@ -168,5 +168,5 @@ class gemini_part(luigi.Task):
                 threads=config.gemini_thread,
                 vep_output_vcf_gz=_input.path,
                 Output_db=_output.path,
-                gemini_log=_output.path + '.log')
+                gemini_log=_output.path.replace('.db',".log"))
             run_cmd(cmdline, dry_run=self.dry_run)

@@ -17,7 +17,7 @@ with same bed file and same fasta file
 """
 
 
-def bed2info(bam_path, output_cov, bed_file, REF_file):
+def bam2info(bam_path, output_cov, bed_file, REF_file):
     print('Start loading required file......')
     bed_file = pd.read_csv(bed_file,
                            index_col=False,
@@ -76,7 +76,7 @@ def bed2info(bam_path, output_cov, bed_file, REF_file):
                 if depth_ == 0:
                     # if position here didn't have any base, then pass this pos.
                     continue
-                row = [str(Gene_name) if not np.isnan(Gene_name) else '',
+                row = [str(Gene_name) if str(Gene_name)=='nan' else '',
                                  Chr,
                                  str(real_pos),
                                  ref_base_str[relative_pos].upper(),
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     ref_path = os.path.abspath(args.ref_fasta)
 
     df = fileparser(input_tab)
-    sample_dict = df.get_output_file_path(odir)
+    sample_dict = df.get_full_info(odir)
 
     for sid in sample_dict.keys():
         # todo: could be multiprocessing
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                                           infodict["recal_bam"]],
                                          [infodict["sorted_cov"],
                                           infodict["recal_cov"]]):
-            bed2info(bam_path=alignment,
-                    output_cov=output_cov,
-                    bed_file=bed_path,
-                    REF_file=ref_path)
+            bam2info(bam_path=alignment,
+                     output_cov=output_cov,
+                     bed_file=bed_path,
+                     REF_file=ref_path)

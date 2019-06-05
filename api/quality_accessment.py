@@ -36,6 +36,8 @@ def parse_samtools_info(long_str, need):
 
 
 def sum_bam_bp(cov_file, target, idx_name, depths=False):
+    if not os.path.exists(cov_file):
+        raise IOError("cov file isnot generated yet.")
     tmp = open(cov_file).readlines()
     bases = ['A', 'T', 'C', 'G']
     depth_per_pos = []
@@ -94,9 +96,10 @@ if __name__ == '__main__':
     sample_names = df.get_attr("sample_name")
     raw_path_R1 = df.get_attr("path_R1")
     raw_path_R2 = df.get_attr("path_R2")
-    sample_dict = df.get_output_file_path(odir)
+    sample_dict = df.get_full_info(odir)
 
-    result_df = pd.DataFrame(index=sample_names, columns=field_names[1:])
+    result_df = pd.DataFrame(index=sample_names,
+                             columns=field_names[1:])
     access_files = defaultdict(dict)
     for sid in sample_names:
         access_files[sid]["raw"] = raw_path_R1[sid]
@@ -106,8 +109,8 @@ if __name__ == '__main__':
 
     for sid, temp_dict in tqdm(access_files.items()):
         # todo: multiprocessing.
-        num_raw_reads = cal_fastq_bp(temp_dict["raw"])
-        num_trimmed_reads = cal_fastq_bp(temp_dict["trim"])
+        num_raw_reads = cal_fastq_bp(temp_dict["raw"]) *2
+        num_trimmed_reads = cal_fastq_bp(temp_dict["trim"]) *2
         sum_bam_bp(temp_dict["sorted_cov"],
                    target='target mapping',
                    idx_name=sid)
@@ -117,7 +120,7 @@ if __name__ == '__main__':
                    depths=True)
         result_df.loc[sid, 'raw data/bp'] = num_raw_reads
         result_df.loc[sid, 'clean data/bp'] = num_trimmed_reads
-
+        result_df.loc[sid, 'dup'] = 1 - result_df.loc[sid,"remove dup target mapping"]/result_df.loc[sid,"target mapping"]
     result_df.loc[:, 'target_length/bp'] = Total_pos_num
     result_df.to_csv(os.path.join(odir,
                                   'quality_accessment_raw.csv'))
