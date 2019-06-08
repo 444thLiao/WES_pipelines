@@ -74,14 +74,14 @@ class QC_trimmomatic(base_luigi_task):
                 ofile=self.output()[0].path,
                 base_out=dirname(self.output()[0].path),
                 thread=config.trimmomatic_thread)
-        if self.dry_run:
-            for _o in self.output():
-                run_cmd("touch %s" % _o.path, dry_run=False)
+
 
         run_cmd(cmdline,
                 dry_run=self.dry_run,
                 log_file=self.get_log_path())
-
+        if self.dry_run:
+            for _o in self.output():
+                run_cmd("touch %s" % _o.path, dry_run=False)
 
 class GenerateSam_pair(base_luigi_task):
 
