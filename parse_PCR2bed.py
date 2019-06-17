@@ -33,5 +33,3 @@ def parse_PCR2BED(in_path,out_path,total_gene):
             f1.write(result_txt)
     else:
         print('Conflict need to handle in parse_PCR2BED.')
-
-from main import *

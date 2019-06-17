@@ -1,4 +1,4 @@
-# setting file , we normally change.
+# setting file , we normally just verify the path of executor.
 
 ##############################################################
 ##
@@ -18,7 +18,7 @@ gemini_pro = '/usr/local/bin/gemini'
 annovar_pro = '/home/liaoth/tools/annovar'
 gatk_pro = '/home/liaoth/tools/gatk4/gatk'
 samtools_pro = '/usr/bin/samtools'
-samtools_version=1.7
+samtools_version = 1.7
 trimmomatic_jar = '/home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar'
 pircard_jar = "/home/liaoth/tools/picard-tools-2.5.0/picard.jar"
 gatkv36_path = "/home/liaoth/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
@@ -42,21 +42,21 @@ somatic_pair_output_fmt = '{path}/{PN}_result/{PairN}_somatic/{PairN}'
 somatic_single_output_fmt = '{path}/{PN}_result/{SN}_somatic/{SN}'
 trim_fmt = '{base}/{PN}_result/trim_result'
 
-worker = 6
 
 bip = ''
 max_memory = 10240
 
 ## software params
-trimmomatic_thread = 10
-sort_sam_ram = "60G"
-sort_sam_thread = 10
-gatk_thread = 20
-annovar_thread = 20
-gemini_thread = 20
-vep_thread = 20
+trimmomatic_thread = 5
+sort_sam_ram = "2G"
+sort_sam_thread = 2
+gatk_thread = 5
+annovar_thread = 1  # be carefull this... each one will take a lot of memory
+gemini_thread = 5
+vep_thread = 5
 java_option = "-Xmx4g"
-bwa_thread = "5"
+bwa_thread = 5
+
 ## DB files, Normaly don't need to change.
 annovar_db = "/home/liaoth/tools/annovar/humandb/"
 REF_file_path = '/home/liaoth/data/hg19/ucsc.hg19.fasta'

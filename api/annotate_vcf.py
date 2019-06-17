@@ -7,7 +7,6 @@ import sys
 from os.path import dirname
 
 import luigi
-
 sys.path.insert(0, dirname(dirname(__file__)))
 from api import Annovar2, Annovar1
 

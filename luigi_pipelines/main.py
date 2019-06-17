@@ -1,5 +1,5 @@
-import sys
-from os.path import dirname
+import sys,os
+from os.path import dirname,join
 
 import luigi
 
@@ -95,7 +95,15 @@ class main_entry(luigi.Task):
         return tasks
 
     def run(self):
-        pass
+        from post_analysis_tasks import germline_filter
+        antype = str(self.analysis_type).lower()
+        if 'germline' in antype:
+            infile = self.input()[0][0].path
+            odir = join(dirname(infile), "germline_filter")
+            germline_filter(dirname(infile),odir,self.tab)
+
+        elif "somatic" in antype:
+            pass
 
 
 if __name__ == '__main__':

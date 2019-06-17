@@ -6,11 +6,17 @@ from toolkit import run_cmd, valid_path
 from luigi_pipelines import config
 from luigi_pipelines.share_luigi_tasks import sorted_bam
 
+class base_luigi_task(luigi.Task):
+    infodict = luigi.DictParameter(default=dict())
+    dry_run = luigi.BoolParameter(default=False)
+
+    def get_log_path(self):
+        base_log_path = self.infodict.get("log_path",None)
+        if base_log_path is not None:
+            return base_log_path
 
 #########2
-class MarkDuplicate(luigi.Task):
-    infodict = luigi.DictParameter()
-    dry_run = luigi.BoolParameter(default=False)
+class MarkDuplicate(base_luigi_task):
 
     def requires(self):
         return sorted_bam(infodict=self.infodict,
@@ -32,15 +38,13 @@ class MarkDuplicate(luigi.Task):
                 odir=dirname(self.output().path)
             )
 
-        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",None))
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 #########5
-class BaseRecalibrator(luigi.Task):
-    infodict = luigi.DictParameter()
-    dry_run = luigi.BoolParameter(default=False)
+class BaseRecalibrator(base_luigi_task):
 
     def requires(self):
         return MarkDuplicate(infodict=self.infodict,
@@ -59,14 +63,12 @@ class BaseRecalibrator(luigi.Task):
             db_snp=config.db_snp,
             known_gold_vcf=config.known_gold_vcf,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",None))
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)
 
 #########6
-class PrintReads(luigi.Task):
-    infodict = luigi.DictParameter()
-    dry_run = luigi.BoolParameter(default=False)
+class PrintReads(base_luigi_task):
 
     def requires(self):
         return [MarkDuplicate(infodict=self.infodict, dry_run=self.dry_run),
@@ -84,9 +86,9 @@ class PrintReads(luigi.Task):
             input_f=self.input()[0].path,
             recal_base=self.input()[1].path,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",None))
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.get_log_path())
         cmdline = 'samtools index -@ %s %s' % (config.sort_sam_thread,
                                                self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",None))
+        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)

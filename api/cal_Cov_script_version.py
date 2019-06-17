@@ -1,3 +1,6 @@
+import sys
+from os.path import dirname, join
+sys.path.insert(0, dirname(dirname(__file__)))
 import argparse
 import os
 
@@ -7,6 +10,7 @@ import pysam
 from tqdm import tqdm
 
 from parse_file_name import fileparser
+import multiprocessing as mp
 
 """
 rewritten at 20190530
@@ -101,22 +105,29 @@ def bam2info(bam_path, output_cov, bed_file, REF_file):
                 f1.flush()
 
 
+def exec_fun(args):
+    func,kwargs = args
+    func(**kwargs)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', dest='input_tab', required=True, type=str)
     parser.add_argument('-o', dest='output', required=True, type=str)
     parser.add_argument('-B', '--bed', dest='bed_path', type=str, help='bed file path')
     parser.add_argument('-r', '--ref', dest='ref_fasta', type=str, help='reference fasta file path', default='/home/liaoth/data/hg19/ucsc.hg19.fasta')
+    parser.add_argument('-t', '--thread', dest='thread', type=int, help='how many process you want to used as calculating coverage.',default=0)
     args = parser.parse_args()
 
     input_tab = os.path.abspath(args.input_tab)
     odir = os.path.abspath(args.output)
     bed_path = os.path.abspath(args.bed_path)
     ref_path = os.path.abspath(args.ref_fasta)
-
+    thread = mp.cpu_count() if args.thread == 0 else args.thread
     df = fileparser(input_tab)
     sample_dict = df.get_full_info(odir)
 
+    params = []
     for sid in sample_dict.keys():
         # todo: could be multiprocessing
         infodict = sample_dict[sid]
@@ -124,7 +135,14 @@ if __name__ == '__main__':
                                           infodict["recal_bam"]],
                                          [infodict["sorted_cov"],
                                           infodict["recal_cov"]]):
-            bam2info(bam_path=alignment,
+            params.append((bam2info,dict(bam_path=alignment,
                      output_cov=output_cov,
                      bed_file=bed_path,
                      REF_file=ref_path)
+                           ))
+            # bam2info(bam_path=alignment,
+            #          output_cov=output_cov,
+            #          bed_file=bed_path,
+            #          REF_file=ref_path)
+    with mp.Pool(processes=thread) as tp:
+        tp.map(exec_fun,params)

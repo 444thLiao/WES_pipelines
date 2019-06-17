@@ -3,21 +3,14 @@
 ### @GPZ-bioinfo, 20190525
 ###############################################################################################
 
-from os.path import dirname
-
 import luigi
-import os
 
 from luigi_pipelines import config, run_cmd, valid_path
-from luigi_pipelines.share_luigi_tasks import PrintReads, Annovar1, Annovar2
-
-
+from luigi_pipelines.share_luigi_tasks import PrintReads, Annovar1, Annovar2,base_luigi_task
 
 
 #########7
-class HaplotypeCaller(luigi.Task):
-    infodict = luigi.DictParameter()
-    dry_run = luigi.BoolParameter(default=False)
+class HaplotypeCaller(base_luigi_task):
 
     def requires(self):
         return PrintReads(infodict=self.infodict, dry_run=self.dry_run)
@@ -41,16 +34,14 @@ class HaplotypeCaller(luigi.Task):
             extra_str=extra_str,
             db_snp=config.db_snp,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",""))
+        run_cmd(cmdline, dry_run=self.dry_run, log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 #########9
-class SelectVariants(luigi.Task):
-    infodict = luigi.DictParameter()
+class SelectVariants(base_luigi_task):
     object_type = luigi.Parameter()
-    dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):
         return HaplotypeCaller(infodict=self.infodict,
@@ -82,16 +73,14 @@ class SelectVariants(luigi.Task):
             input_f=self.input().path,
             output_f=self.output().path,
             selecttype=selecttype)
-        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",""))
+        run_cmd(cmdline, dry_run=self.dry_run, log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 #########10
-class VariantFiltration(luigi.Task):
-    infodict = luigi.DictParameter()
+class VariantFiltration(base_luigi_task):
     object_type = luigi.Parameter()
-    dry_run = luigi.BoolParameter(default=False)
 
     def requires(self):
         return SelectVariants(infodict=self.infodict,
@@ -117,15 +106,13 @@ class VariantFiltration(luigi.Task):
             output_f=self.output().path,
             filterExpression=filterExpression,
             object_type=self.object_type)
-        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",""))
+        run_cmd(cmdline, dry_run=self.dry_run, log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)
 
 
 #########13
-class CombineVariants(luigi.Task):
-    infodict = luigi.DictParameter()
-    dry_run = luigi.BoolParameter(default=False)
+class CombineVariants(base_luigi_task):
 
     def requires(self):
         required_task = {ot: VariantFiltration(infodict=self.infodict,
@@ -146,7 +133,7 @@ class CombineVariants(luigi.Task):
             input_indel=self.input()["indel"].path,
             input_snp=self.input()["snp"].path,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run,log_file=self.infodict.get("log_path",""))
+        run_cmd(cmdline, dry_run=self.dry_run, log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)
 
@@ -160,7 +147,7 @@ class new_Annovar1(Annovar1):
 class new_Annovar2(Annovar2):
     def requires(self):
         return [new_Annovar1(infodict=self.infodict,
-                            dry_run=self.dry_run)]
+                             dry_run=self.dry_run)]
 
 
 if __name__ == '__main__':

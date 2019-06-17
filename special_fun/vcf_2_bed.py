@@ -1,4 +1,5 @@
 import vcf
+from tqdm import tqdm
 def vcf2bed(input_vcf, vcf_bed):
     """
     For some reason, some samples don't have any bed file to use.
@@ -12,7 +13,7 @@ def vcf2bed(input_vcf, vcf_bed):
     """
     vcf_record = vcf.Reader(filename=input_vcf)
     with open(vcf_bed, 'w') as f1:
-        for _record in vcf_record:
+        for _record in tqdm(vcf_record):
             CHROM = _record.CHROM
             POS = int(_record.POS)
             REF = _record.REF

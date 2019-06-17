@@ -46,7 +46,7 @@ class MuTect2_pair(MuTect2_pair):
                 dry_run=self.dry_run,
                 log_file=self.infodict_N.get("log_path", None))
         if self.dry_run:
-            run_cmd("touch %s" % self.output().path, dry_run=False)
+            run_cmd("touch %s" % self.output().path, dry_run=False,log_file=self.get_log_path())
 
 class MuTect2_single(MuTect2_single):
     def requires(self):
@@ -86,7 +86,7 @@ class MuTect2_single(MuTect2_single):
                 dry_run=self.dry_run,
                 log_file=self.infodict.get("log_path",None))
         if self.dry_run:
-            run_cmd("touch %s" % self.output().path, dry_run=False)
+            run_cmd("touch %s" % self.output().path, dry_run=False,log_file=self.get_log_path())
 
 
 class new_Annovar1(Annovar1):

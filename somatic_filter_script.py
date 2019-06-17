@@ -78,10 +78,10 @@ def pair_filter(normal_file, tumore_file, lowF_file, NotInNormal_file,
     #print 'first:',len(tumore_file_filtered)
     normal_file_filtered_index = ['_'.join([normal_file_filtered.iloc[i, 0], str(int(normal_file_filtered.iloc[i, 1])),
                                             str(int(normal_file_filtered.iloc[i, 2]))]) for i in
-                                  xrange(len(normal_file_filtered))]
+                                  range(len(normal_file_filtered))]
     tumore_file_filtered_index = ['_'.join([tumore_file_filtered.iloc[i, 0], str(int(tumore_file_filtered.iloc[i, 1])),
                                             str(int(tumore_file_filtered.iloc[i, 2]))]) for i in
-                                  xrange(len(tumore_file_filtered))]
+                                  range(len(tumore_file_filtered))]
     #print 'second:', len(tumore_file_filtered_index)
     tumore_file_filtered.index = tumore_file_filtered_index
     normal_file_filtered.index = normal_file_filtered_index

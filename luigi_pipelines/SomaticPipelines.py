@@ -4,8 +4,19 @@ from luigi_pipelines import run_cmd, valid_path, config
 from luigi_pipelines.share_luigi_tasks import PrintReads, Annovar1, Annovar2
 
 
+class base_luigi_task(luigi.Task):
+
+    def get_log_path(self):
+        if infodict not in dir(self):
+            base_log_path = self.infodict_N.get("log_path", None)
+        else:
+            base_log_path = self.infodict.get("log_path", None)
+        if base_log_path is not None:
+            return base_log_path
+
+
 #########somatic pipeline
-class MuTect2_pair(luigi.Task):
+class MuTect2_pair(base_luigi_task):
     ####combine N & T
     infodict_N = luigi.DictParameter()
     infodict_T = luigi.DictParameter()
@@ -36,7 +47,6 @@ class MuTect2_pair(luigi.Task):
         input_normal = self.input()["normal"].path
         input_tumor = self.input()["tumor"].path
 
-
         cmdline = '''java {java_option} -jar {gatk} -T MuTect2 --allSitePLs -R {REF} --cosmic {cosmic} --dbsnp {db_snp} --input_file:normal {input_normal} --input_file:tumor {input_tumor} --out {output_f} --bamOutput {prefix}.bam --log_to_file {prefix}.log'''.format(
             gatk=config.gatkv36_path,
             java_option=config.java_option,
@@ -49,11 +59,12 @@ class MuTect2_pair(luigi.Task):
             output_f=self.output().path)
         run_cmd(cmdline,
                 dry_run=self.dry_run,
-                log_file=self.infodict_N.get("log_path",None))
+                log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)
 
-class MuTect2_single(luigi.Task):
+
+class MuTect2_single(base_luigi_task):
     infodict = luigi.DictParameter()
     dry_run = luigi.BoolParameter(default=False)
 
@@ -99,9 +110,10 @@ class MuTect2_single(luigi.Task):
             extra_str=extra_str)
         run_cmd(cmdline,
                 dry_run=self.dry_run,
-                log_file=self.infodict.get("log_path",None))
+                log_file=self.get_log_path())
         if self.dry_run:
             run_cmd("touch %s" % self.output().path, dry_run=False)
+
 
 class new_Annovar1(Annovar1):
     mode = luigi.Parameter()
@@ -122,6 +134,7 @@ class new_Annovar1(Annovar1):
         else:
             raise Exception("wrong input")
 
+
 class new_Annovar2(Annovar2):
 
     def requires(self):
@@ -136,6 +149,5 @@ class new_Annovar2(Annovar2):
                                          dry_run=self.dry_run,
                                          mode='single')
         return tasks
-
 
 # python -m luigi --module SomaticPipelines_for_NY workflow --x XK-8T_S21,XK-2T_S20,XK-2W_S17,XK-8W_S18 --parallel-scheduling --workers 12 --local-scheduler

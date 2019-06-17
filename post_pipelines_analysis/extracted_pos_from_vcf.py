@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 
 bcftools_path = '/home/liaoth/tools/bcftools/bcftools'
-
+# version : ???
 def prepare_vcf(vcf_path):
     if not vcf_path.endswith('.gz'):
         os.system('`which bgzip` %s' % vcf_path)
@@ -30,8 +30,8 @@ def merge_two_vcf(pair_vcf, bed, single_vcf, output_vcf):
     os.system(cmdline1)
     os.system(cmdline2)
 
-    prepare_vcf(output_vcf + '1');
-    prepare_vcf(output_vcf + '2');
+    prepare_vcf(output_vcf + '1')
+    prepare_vcf(output_vcf + '2')
 
     formatted_line2 = """{bcftools} concat {o1} {o2} -a -d all > {output}""".format(
         bcftools = bcftools_path,

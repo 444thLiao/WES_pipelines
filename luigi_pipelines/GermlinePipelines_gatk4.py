@@ -26,12 +26,12 @@ class HaplotypeCaller(HaplotypeCaller):
             extra_str = ""
         cmdline = "{gatk4} HaplotypeCaller --java-options '-Xmx30g' --native-pair-hmm-threads 30 --reference {ref} --input {input} --genotyping-mode DISCOVERY --dbsnp {dbsnp} -stand-call-conf 10 -A Coverage -A DepthPerAlleleBySample -A FisherStrand -A BaseQuality -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A ChromosomeCounts --all-site-pls true --output {output} {extra_str}".format(
             ref=config.REF_file_path,
-            input=self.input()[0].path,
+            input=self.input().path,
             dbsnp=config.db_snp,
             output=self.output().path,
             extra_str=extra_str,
             gatk4=config.gatk_pro)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run, log_file=self.get_log_path())
 
 
 #########9
@@ -56,7 +56,7 @@ class SelectVariants(SelectVariants):
             input_f=self.input().path,
             output_f=self.output().path,
             selecttype=selecttype)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run, log_file=self.get_log_path())
 
 
 #########10
@@ -82,7 +82,7 @@ class VariantFiltration(VariantFiltration):
             output_f=self.output().path,
             filterExpression=filterExpression,
             object_type=self.object_type)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run, log_file=self.get_log_path())
 
 
 #########13
@@ -103,7 +103,7 @@ class CombineVariants(CombineVariants):
             input_indel=self.input()["indel"].path,
             input_snp=self.input()["snp"].path,
             output_f=self.output().path)
-        run_cmd(cmdline, dry_run=self.dry_run)
+        run_cmd(cmdline, dry_run=self.dry_run, log_file=self.get_log_path())
 
 
 class new_Annovar1(Annovar1):
@@ -115,7 +115,7 @@ class new_Annovar1(Annovar1):
 class new_Annovar2(Annovar2):
     def requires(self):
         return [new_Annovar1(infodict=self.infodict,
-                            dry_run=self.dry_run)]
+                             dry_run=self.dry_run)]
 
 
 if __name__ == '__main__':
