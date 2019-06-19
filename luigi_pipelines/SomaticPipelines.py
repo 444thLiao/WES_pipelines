@@ -1,3 +1,8 @@
+###############################################################################################
+### Target (Amplicon) sequencing of human exome, somatic calling pipelines For pair samples (one tumor and one normal)
+### @GPZ-bioinfo, 20190618
+###############################################################################################
+
 import luigi
 
 from luigi_pipelines import run_cmd, valid_path, config
@@ -7,7 +12,7 @@ from luigi_pipelines.share_luigi_tasks import PrintReads, Annovar1, Annovar2
 class base_luigi_task(luigi.Task):
 
     def get_log_path(self):
-        if infodict not in dir(self):
+        if "infodict" not in dir(self):
             base_log_path = self.infodict_N.get("log_path", None)
         else:
             base_log_path = self.infodict.get("log_path", None)

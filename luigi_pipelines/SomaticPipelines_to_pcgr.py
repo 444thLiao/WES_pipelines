@@ -6,46 +6,46 @@ from luigi_pipelines.share_luigi_tasks import Add_cov_infos, gemini_part, vt_par
 from special_fun import Add_cov_ino_in_vcf as P_vcf
 
 
-class Add_cov_infos_SO(Add_cov_infos):
-    def requires(self):
-        return [MuTect2_single(infodict=self.infodict,
-                               dry_run=self.dry_run),
-                PrintReads(infodict=self.infodict,
-                           dry_run=self.dry_run)]
-
-    def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.mt2.bam', '.mt2.added_cov.vcf'))
-
-    def run(self):
-        P_vcf.Add_in_vcf_SO(self.input()[1].path,
-                            self.input()[0].path.replace('.bam', '.vcf'),
-                            self.output().path,
-                            config.REF_file_path)
-
-
-class Add_cov_infos_PA(Add_cov_infos):
-    def requires(self):
-        _IDs = str(self.sampleID).split(',')
-        if pfn(_IDs[0], 'mt2_for') == NORMAL_SIG:
-            normal_ID = _IDs[0]
-            tumor_ID = _IDs[1]
-        else:
-            tumor_ID = _IDs[0]
-            normal_ID = _IDs[1]
-
-        return [MuTect2_pair(sample_IDs=self.sampleID, dry_run=self.dry_run),
-                PrintReads(sampleID=normal_ID, dry_run=self.dry_run),
-                PrintReads(sampleID=tumor_ID, dry_run=self.dry_run)]
-
-    def output(self):
-        return luigi.LocalTarget(self.input()[0].path.replace('.mt2.bam', '.mt2.added_cov.vcf'))
-
-    def run(self):
-        P_vcf.Add_in_vcf_PA([self.input()[1].path, self.input()[2].path],
-                            self.input()[0].path.replace('.bam', '.vcf'),
-                            self.output().path,
-                            config.REF_file_path)
-
+# class Add_cov_infos_SO(Add_cov_infos):
+#     def requires(self):
+#         return [MuTect2_single(infodict=self.infodict,
+#                                dry_run=self.dry_run),
+#                 PrintReads(infodict=self.infodict,
+#                            dry_run=self.dry_run)]
+#
+#     def output(self):
+#         return luigi.LocalTarget(self.input()[0].path.replace('.mt2.bam', '.mt2.added_cov.vcf'))
+#
+#     def run(self):
+#         P_vcf.Add_in_vcf_SO(self.input()[1].path,
+#                             self.input()[0].path.replace('.bam', '.vcf'),
+#                             self.output().path,
+#                             config.REF_file_path)
+#
+#
+# class Add_cov_infos_PA(Add_cov_infos):
+#     def requires(self):
+#         _IDs = str(self.sampleID).split(',')
+#         if pfn(_IDs[0], 'mt2_for') == NORMAL_SIG:
+#             normal_ID = _IDs[0]
+#             tumor_ID = _IDs[1]
+#         else:
+#             tumor_ID = _IDs[0]
+#             normal_ID = _IDs[1]
+#
+#         return [MuTect2_pair(sample_IDs=self.sampleID, dry_run=self.dry_run),
+#                 PrintReads(sampleID=normal_ID, dry_run=self.dry_run),
+#                 PrintReads(sampleID=tumor_ID, dry_run=self.dry_run)]
+#
+#     def output(self):
+#         return luigi.LocalTarget(self.input()[0].path.replace('.mt2.bam', '.mt2.added_cov.vcf'))
+#
+#     def run(self):
+#         P_vcf.Add_in_vcf_PA([self.input()[1].path, self.input()[2].path],
+#                             self.input()[0].path.replace('.bam', '.vcf'),
+#                             self.output().path,
+#                             config.REF_file_path)
+#
 
 #########15
 class vt_part(vt_part):
@@ -77,7 +77,7 @@ class vep_part(vep_part):
                        mode=self.mode)
 
 
-class gemini_part(gemini_part):
+class pcgr_part(gemini_part):
 
     def requires(self):
         # todo: test....

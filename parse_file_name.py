@@ -6,6 +6,7 @@ import itertools
 import os
 
 import pandas as pd
+
 import setting as config
 
 
@@ -13,10 +14,10 @@ class fileparser():
     def __init__(self, filename):
         filename = os.path.abspath(filename)
 
-        self.df = pd.read_csv(filename, index_col=None,dtype=str)
+        self.df = pd.read_csv(filename, sep='\t', index_col=None, dtype=str)
 
-        self.cols,self.df = validate_df(self.df,filename)
-        self.df = self.df.set_index("sample_name")
+        self.cols, self.df = validate_df(self.df, filename)
+        self.df = self.df.set_index("sample ID")
 
     def get_attr(self, col):
         if col == self.df.index.name:
@@ -26,6 +27,16 @@ class fileparser():
         else:
 
             return self.df[col].to_dict()
+
+    @property
+    def sid(self):
+        return self.get_attr("sample ID")
+    @property
+    def R1(self):
+        return self.get_attr("R1")
+    @property
+    def R2(self):
+        return self.get_attr("R2")
 
     def is_somatic(self):
         if len(self.df["Somatic"].unique()) > 1:
@@ -84,7 +95,7 @@ class fileparser():
             if gettype == 'germline':
                 list_infos = [infodict]
             else:
-                list_infos = [infodict["Normal"],infodict["Tumor"]]
+                list_infos = [infodict["Normal"], infodict["Tumor"]]
 
             for info in list_infos:
                 sample_name = info.get("SampleID", '')
@@ -122,15 +133,17 @@ class fileparser():
         return sample_dict
 
 
-def validate_df(df,filename):
+def validate_df(df, filename):
     template_file = os.path.join(os.path.dirname(__file__),
                                  "data_input.template")
-    columns_values = open(template_file).read().strip('\n').split(',')
+    columns_values = open(template_file).read().strip('\n').split('\t')
 
     if set(df.columns) != set(columns_values):
-        raise Exception("INPUT file has unknown header")
+        raise Exception("INPUT file has unknown header ."
+                        "Should be %s, but %s input" % (";".join(df.columns),
+                                                                                     ";".join(columns_values)))
 
-    if df["sample_name"].duplicated().any():
+    if df["sample ID"].duplicated().any():
         raise Exception("sample_name has duplicated.")
 
     chdir = os.path.dirname(os.path.abspath(filename))
@@ -139,6 +152,6 @@ def validate_df(df,filename):
     for idx, row in df.iterrows():
         # auto implement filepath
         # so easy~~~
-        row["path_R1"] = os.path.join(chdir,row["path_R1"])
-        row["path_R2"] = os.path.join(chdir,row["path_R2"])
-    return columns_values,df
+        row["R1"] = row["R1"] if pd.isna(row["R1"]) else os.path.join(chdir, row["R1"])
+        row["R2"] = row["R2"] if pd.isna(row["R2"]) else os.path.join(chdir, row["R2"])
+    return columns_values, df

@@ -1,0 +1,2 @@
+sample ID	project_name	source_name	R1	R2	Somatic	sequencing_type
+s1	t_germ	lurenjia	s1_1.fq.gz	s1_2.fq.gz	WES

@@ -1,4 +1,3 @@
-from pandas import DataFrame as df
 import pandas
 def snp_138_common_init(path = '/home/liaoth/data/humandb/snp138Common.name.txt'):
     '''
@@ -10,17 +9,17 @@ def snp_138_common_init(path = '/home/liaoth/data/humandb/snp138Common.name.txt'
     snp138_common = [_i.replace('\n', '') for _i in snp138_common]
     return snp138_common
 
-def ClearSeq_pos_init(path = '/home/liaoth/project/170602_XK/server_result/result/archived_v1/0717_151_genes/coverage_info/151 genes panel_0717_mail.txt'):
-    '''
-
-    :param path: ClearSeq 151 gene info file
-    :return: pandas DataFrame with Start,End info. Using Utils.construct_pos_list() to create pos dict.
-    '''
-    with open(path) as f1:
-        a = f1.read().split('\n')
-    a.remove('')
-
-    return a
+# def ClearSeq_pos_init(path = '/home/liaoth/project/170602_XK/server_result/result/archived_v1/0717_151_genes/coverage_info/151 genes panel_0717_mail.txt'):
+#     '''
+#
+#     :param path: ClearSeq 151 gene info file
+#     :return: pandas DataFrame with Start,End info. Using Utils.construct_pos_list() to create pos dict.
+#     '''
+#     with open(path) as f1:
+#         a = f1.read().split('\n')
+#     a.remove('')
+#
+#     return a
 
 def DNA_repair_init(path = '/home/liaoth/project/170801_XK/DNA_repair_db.xlsx'):
     data_info = pandas.read_excel(path)

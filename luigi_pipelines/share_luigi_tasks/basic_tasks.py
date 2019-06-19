@@ -4,7 +4,7 @@ from os.path import dirname
 import luigi
 
 from api.cal_Cov_script_version import bam2info
-from luigi_pipelines import config
+from luigi_pipelines import config, summarize_covinfo
 from toolkit import run_cmd, valid_path
 
 class base_luigi_task(luigi.Task):
@@ -86,8 +86,8 @@ class QC_trimmomatic(base_luigi_task):
 class GenerateSam_pair(base_luigi_task):
 
     def requires(self):
-        input1 = self.infodict.get("path_R1", "")
-        input2 = self.infodict.get("path_R2", "")
+        input1 = self.infodict.get("R1", "")
+        input2 = self.infodict.get("R2", "")
         return QC_trimmomatic(PE1=input1,
                               PE2=input2,
                               infodict=self.infodict,
@@ -331,7 +331,9 @@ class PrintReads(base_luigi_task):
 
 ############################################################
 class cal_coverage_info(base_luigi_task):
-
+    """
+    generate 4 files actually even thought there are only two files detected at self.output()
+    """
     def requires(self):
         return [PrintReads(infodict=self.infodict, dry_run=self.dry_run),
                 sorted_bam(infodict=self.infodict, dry_run=self.dry_run)]
@@ -355,6 +357,11 @@ class cal_coverage_info(base_luigi_task):
                          bed_file=config.bed_file_path,
                          REF_file=config.REF_file_path
                          )
+                summarize_covinfo(_o.path,
+                                  output_f=_o.path.replace('cov.info',
+                                                           'cov_summary.info'))
+                # summaize the cov info with fixed format
+                # todo: change the fixed format?? does it needed??
             else:
                 run_cmd("run bam2info for %s" % _i.path, dry_run=self.dry_run, log_file=self.get_log_path())
 

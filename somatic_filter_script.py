@@ -5,7 +5,8 @@ from pandas import DataFrame as df
 import argparse
 
 
-def single_filter(file_path, output_path='',
+def single_filter(file_path,
+                  output_path='',
                   keep={'Func.refGene': ['exonic', 'exonic;splicing']},
                   drop={'ExonicFunc.refGene': ['synonymous SNV']},
                   other_Info={'6': 'PASS'},
@@ -62,9 +63,15 @@ def single_filter(file_path, output_path='',
         return filter_file
 
 
-def pair_filter(normal_file, tumore_file, lowF_file, NotInNormal_file,
-                keep={'Func.refGene': ['exonic', 'exonic;splicing']}, drop={'ExonicFunc.refGene': ['synonymous SNV']},
-                AQ=30, min_F=0.1,separte = False):
+def pair_filter(normal_file,
+                tumore_file,
+                lowF_file,
+                NotInNormal_file,
+                keep={'Func.refGene': ['exonic', 'exonic;splicing']},
+                drop={'ExonicFunc.refGene': ['synonymous SNV']},
+                AQ=30,
+                min_F=0.1,
+                separte = False):
     # AQ: average quality   major for filter 'not in normal'
     # min_F: minium frequency    major for filter 'low F normal'
     if not separte:
@@ -136,7 +143,7 @@ def pair_filter(normal_file, tumore_file, lowF_file, NotInNormal_file,
     process_list_N = [_i.split('\t') for _i in process_list_N]
 
     N_filtered_low_frequency = []
-    for i in xrange(len(process_list_N)):
+    for i in range(len(process_list_N)):
         cache = dict(zip(process_list_N[i][-2].split(':'), process_list_N[i][-1].split(':')))
         try:
             if float(cache['AD'].split(',')[1]) + float(cache['AD'].split(',')[0]) != 0:

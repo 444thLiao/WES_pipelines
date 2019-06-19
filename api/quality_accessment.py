@@ -1,5 +1,5 @@
 import sys
-from os.path import dirname, join
+from os.path import dirname
 sys.path.insert(0, dirname(dirname(__file__)))
 
 import os
@@ -97,9 +97,9 @@ if __name__ == '__main__':
                    '>20X']
     filter_str = '_somatic'
 
-    sample_names = df.get_attr("sample_name")
-    raw_path_R1 = df.get_attr("path_R1")
-    raw_path_R2 = df.get_attr("path_R2")
+    sample_names = df.sid
+    raw_path_R1 = df.R1
+    raw_path_R2 = df.R2
     sample_dict = df.get_full_info(odir)
 
     result_df = pd.DataFrame(index=sample_names,
