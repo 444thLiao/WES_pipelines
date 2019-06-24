@@ -3,7 +3,7 @@ from os.path import dirname
 
 import luigi
 
-from api.cal_Cov_script_version import bam2info
+from api.cal_Cov_script import bam2info
 from luigi_pipelines import config, summarize_covinfo
 from toolkit import run_cmd, valid_path
 
@@ -394,7 +394,7 @@ class quality_assessment(base_luigi_task):
     def run(self):
         # summarize python script
         # it will iterate all samples contains at `self.tab_file`
-        py_file = os.path.join(dirname(dirname(dirname(__file__))),
+        py_file = os.path.join(config.project_root_path,
                                "api",
                                "quality_accessment.py")
 

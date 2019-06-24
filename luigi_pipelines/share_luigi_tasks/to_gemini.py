@@ -1,7 +1,7 @@
 import luigi
 
 from luigi_pipelines import config, run_cmd
-from api.cal_Cov_script_version import bam2info
+from api.cal_Cov_script import bam2info
 from special_fun import Add_cov_ino_in_vcf as P_vcf
 from special_fun.vcf_2_bed import vcf2bed
 

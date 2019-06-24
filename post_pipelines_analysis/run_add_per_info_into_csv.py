@@ -29,6 +29,8 @@ def run_batch(input_path,tb_bam_path,nb_bam_path,NORMAL_SIG,TUMOR_SIG):
         nb = nb_bam_path.format(nb=normal_name)
         cmdlines.append(cmdline.format(py_exe=python_exe,input=path,output=output,tb=tb,nb=nb))
     return cmdlines
+
+
 if __name__ == '__main__':
     if len(sys.argv) ==2 and '/' in sys.argv[-1]:
         setting_file = os.path.abspath(sys.argv[-1])

@@ -1,1 +1,6 @@
 luigi
+pysamstats
+tqdm
+pyvcf
+pandas
+numpy

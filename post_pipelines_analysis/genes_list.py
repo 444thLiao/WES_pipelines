@@ -5,8 +5,8 @@ def snp_138_common_init(path = '/home/liaoth/data/humandb/snp138Common.name.txt'
     :param path: snp 138 common file
     :return: list of every common snp.
     '''
-    snp138_common = open(path).readline()
-    snp138_common = [_i.replace('\n', '') for _i in snp138_common]
+    with open(path,'r') as snp138_common:
+        snp138_common = [_i.replace('\n', '') for _i in snp138_common]
     return snp138_common
 
 # def ClearSeq_pos_init(path = '/home/liaoth/project/170602_XK/server_result/result/archived_v1/0717_151_genes/coverage_info/151 genes panel_0717_mail.txt'):

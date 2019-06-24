@@ -141,15 +141,18 @@ class new_Annovar1(Annovar1):
 
 
 class new_Annovar2(Annovar2):
-
+    """
+    the output of it should be pair csv, single Tumor csv. (order should be fixed)
+    """
     def requires(self):
         tasks = {}
         tasks["pair"] = new_Annovar1(infodict=self.infodict,
                                      dry_run=self.dry_run,
                                      mode='pair')
-        tasks["single_N"] = new_Annovar1(infodict=self.infodict["Normal"],
-                                         dry_run=self.dry_run,
-                                         mode='single')
+        # tasks["single_N"] = new_Annovar1(infodict=self.infodict["Normal"],
+        #                                  dry_run=self.dry_run,
+        #                                  mode='single')
+        # No need to perform mutect2 single for normal sample.
         tasks["single_T"] = new_Annovar1(infodict=self.infodict["Tumor"],
                                          dry_run=self.dry_run,
                                          mode='single')

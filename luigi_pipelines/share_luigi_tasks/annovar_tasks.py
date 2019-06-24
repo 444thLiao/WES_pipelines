@@ -38,9 +38,10 @@ class Annovar2(base_luigi_task):
     def output(self):
         if type(self.input()) == dict:
             ofiles = [luigi.LocalTarget(
-                _input.path.replace('.av',
+                self.input()[key].path.replace('.av',
                                     '.anno.%s_multianno.csv' % config.genome_version))
-                for _input in self.input().values()]
+                for key in ["pair","single_T"]]
+            # it should be identical to the key of `SomaticPipelines.new_Annovar2`
         elif type(self.input()) == list:
             ofiles = [luigi.LocalTarget(
                 _input.path.replace('.av',

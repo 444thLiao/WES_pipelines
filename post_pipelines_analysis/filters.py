@@ -36,7 +36,7 @@ def snp_common(snpfile_list,file_df):
 
     return rare_snp
 
-def pass_filter(file_df,match ):
+def pass_filter(file_df,match=["PASS"] ):
     if 'Otherinfo' not in file_df.columns:
         return 'Wrong df'
     if type(match) != set:
@@ -61,7 +61,6 @@ def pass_filter(file_df,match ):
 def cov_filter_info_Version(file_df,threshold = 10):
     if 'N_mut_cov' not in file_df:
         return 'Wrong Columns'
-    file_df.index = range(file_df.shape[0])
     file_df = file_df.loc[file_df.N_mut_cov.astype(str) != 'Off target', :]
     file_df = file_df.loc[file_df.T_mut_cov.astype(str) != 'Off target', :]
     _N_cov = file_df.loc[:, ['N_ref_cov', 'N_mut_cov']].astype(float).sum(1)
@@ -103,7 +102,7 @@ def intarget_filter(file_df,range_list):
 def clinvar_filter(file_df,not_in = ('benign','likely benign')):
     clin_imp_bucket = []
     for _index in list(file_df.index):
-        _info = file_df.loc[_index,'CLINSIG'].lower()
+        _info = str(file_df.loc[_index,'CLINSIG']).lower()
         _info = _info.split('|')
         if _info != ['.'] and not set(not_in).intersection(set(_info)):
             clin_imp_bucket.append(_index)

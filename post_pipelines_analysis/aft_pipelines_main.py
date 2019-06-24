@@ -3,6 +3,8 @@ import glob, os, sys
 import pandas as pd
 
 """
+python 
+
 python ~/project/Whole_pipelines/aft_pipelines_analysis/filter_pipelines.py -i /home/liaoth/data2/project/XK_WES/180321/output/ -o /home/liaoth/data2/project/XK_WES/180321/output/final_output/ -s /home/liaoth/data2/project/XK_WES/180321/setting.py
 
 # upload
@@ -160,7 +162,7 @@ def remind_text(local_project_path):
     remind_run_command += 'run cal_cov script to get coverage info from different bam files.'
     remind_run_command += '''for each in %s/XK_result/*/*sorted.bam; do python %s/pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done''' % (
     base_outpath, server_script_path, bed_file_path, REF_file_path)
-    remind_run_command += '''for each in %s/XK_result/*/*recal_reads.bam; do python %s/pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done''' % (
+    remind_run_command += '''for each in %s/XK_result/*/*recal_reads.bam; do python %s/pre_pipelines_analysis/cal_Cov_script.py -b $each -B %s -r %s & done''' % (
     base_outpath, server_script_path, bed_file_path, REF_file_path)
     remind_run_command += '''
         ##run script in order to generate accessment file. \n\n \

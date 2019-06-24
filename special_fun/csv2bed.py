@@ -104,7 +104,7 @@ def csv2bed(csv_path, output):
 
     with open(output, 'w') as f1:
         cache.iloc[:, :3].to_csv(f1, index=False, header=None, sep='\t')
-
+    return output
 
 if __name__ == '__main__':
     input_path = sys.argv[1]

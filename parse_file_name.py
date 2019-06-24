@@ -75,6 +75,7 @@ class fileparser():
                     key = "%s + %s" % (nid,
                                        tid)
                     pair_dict[key] = {}
+                    pair_dict[key]["source_name"] = source_name
                     pair_dict[key]["Normal"] = normal.loc[nid, :].to_dict()
                     pair_dict[key]["Normal"]["SampleID"] = nid
                     pair_dict[key]["Tumor"] = tumor.loc[tid, :].to_dict()
@@ -95,7 +96,8 @@ class fileparser():
             if gettype == 'germline':
                 list_infos = [infodict]
             else:
-                list_infos = [infodict["Normal"], infodict["Tumor"]]
+                list_infos = [infodict["Normal"],
+                              infodict["Tumor"]]
 
             for info in list_infos:
                 sample_name = info.get("SampleID", '')

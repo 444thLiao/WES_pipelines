@@ -23,7 +23,8 @@ else:
     from setting import *
 
 # relative input csv path
-pipelines_path = os.path.join(os.path.dirname(base_outpath), 'pipelines_result')
+pipelines_path = os.path.join(os.path.dirname(base_outpath),
+                              'pipelines_result')
 
 somatic_csv = os.path.join(pipelines_path, 'somatic/')
 germline_csv = os.path.join(pipelines_path, 'germline/')
@@ -145,7 +146,7 @@ def run_cal_cov():
     if noexist_cov_bams:
         print("There are listed below bam file doesn't cal coverage: %s.\n We need to cal it first. \n" % '\n'.join(
                 noexist_cov_bams))
-        cmd = """for each in %s; do python %s/pre_pipelines_analysis/cal_Cov_script_version.py -b $each -B %s -r %s & done""" % (
+        cmd = """for each in %s; do python %s/pre_pipelines_analysis/cal_Cov_script.py -b $each -B %s -r %s & done""" % (
             ' '.join(noexist_cov_bams),
             os.path.dirname(dir_script.lstrip('/')),
             bed_file_path,

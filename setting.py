@@ -7,9 +7,11 @@
 
 ##Noramlly need to change part
 ###    Change Change
-
+from os.path import dirname, join
+project_root_path = "/home/liaoth/project/Whole_pipelines/"
 
 ###### server programe path
+bcftools_path = '/home/liaoth/tools/bcftools/bcftools'
 vt_pro = '/home/liaoth/tools/vt/vt'
 vep_pro = '/home/liaoth/tools/ensembl-vep/vep'
 bgzip_pro = '/usr/bin/bgzip'
@@ -18,12 +20,15 @@ gemini_pro = '/usr/local/bin/gemini'
 annovar_pro = '/home/liaoth/tools/annovar'
 gatk_pro = '/home/liaoth/tools/gatk4/gatk'
 samtools_pro = '/usr/bin/samtools'
-samtools_version = 1.7
+samtools_version = 1.7  # difference between some versions
 trimmomatic_jar = '/home/liaoth/tools/Trimmomatic-0.36/trimmomatic-0.36.jar'
 pircard_jar = "/home/liaoth/tools/picard-tools-2.5.0/picard.jar"
 gatkv36_path = "/home/liaoth/tools/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
-
-
+pcgr_dir = "/home/liaoth/tools/pcgr"
+pcgr_toml_file = "/home/liaoth/tools/pcgr/conf/GPZ_pcgr_no_control.toml"
+bed_file_path = join(project_root_path,
+                     "db",
+                     "Sureselect_V6_COSMIC_formal.bed")
 ######PCR gene number   ###PCR part
 total_gen = 26
 PCR_ON = False
@@ -33,7 +38,7 @@ PCR_ON = False
 ##
 ## Usually you don't need to change part.
 ##############################################################
-bed_file_path = '/home/liaoth/data2/WES_bed/Sureselect_V6_COSMIC_formal.bed'
+
 
 ## file structure of output result, Normaly don't need to change.
 output_dir = '{path}/{PN}_result/{SN}'
@@ -41,7 +46,7 @@ output_fmt = '{path}/{PN}_result/{SN}/{SN}'
 somatic_pair_output_fmt = '{path}/{PN}_result/{PairN}_somatic/{PairN}'
 somatic_single_output_fmt = '{path}/{PN}_result/{SN}_somatic/{SN}'
 trim_fmt = '{base}/{PN}_result/trim_result'
-
+filtered_dir = "{path}/filtered_csv/{PairN}"
 
 bip = ''
 max_memory = 10240

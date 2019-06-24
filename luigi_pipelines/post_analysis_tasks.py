@@ -1,8 +1,7 @@
-from os.path import dirname
 
-from luigi_pipelines import run_cmd
+from luigi_pipelines import run_cmd,config
 
-project_root_path = dirname(dirname(__file__))
+project_root_path = config.project_root_path
 
 
 def germline_filter(indir, odir, tab):

@@ -1,47 +1,69 @@
-from __future__ import print_function
-import os
+import sys
+from os.path import dirname
 
-bcftools_path = '/home/liaoth/tools/bcftools/bcftools'
-# version : ???
-def prepare_vcf(vcf_path):
+sys.path.insert(0, dirname(dirname(__file__)))
+import os
+from luigi_pipelines import config, run_cmd
+
+bcftools_path = config.bcftools_path
+
+
+# version : 1.9-183-ga5eebf8
+def prepare_vcf(vcf_path, log_file=sys.stdout):
     if not vcf_path.endswith('.gz'):
-        os.system('`which bgzip` %s' % vcf_path)
+        run_cmd('{bgzip} -c {vcf_p} > {vcf_p}.gz'.format(bgzip=config.bgzip_pro,
+                                                         vcf_p=vcf_path),
+                log_file=log_file)
         vcf_path += '.gz'
-        print(vcf_path)
-        os.system('%s index %s' % (bcftools_path,vcf_path))
+        run_cmd('%s index %s' % (bcftools_path, vcf_path),
+                log_file=log_file)
     else:
         if not os.path.isfile(vcf_path + '.csi'):
-            os.system('%s index %s' % (bcftools_path,vcf_path))
+            run_cmd('%s index %s' % (bcftools_path, vcf_path),
+                    log_file=log_file)
+    return vcf_path
 
 
-def merge_two_vcf(pair_vcf, bed, single_vcf, output_vcf):
-    prepare_vcf(pair_vcf)
-    prepare_vcf(single_vcf)
+def merge_two_vcf(pair_vcf, single_vcf, bed, output_vcf, log_file=sys.stdout):
+    prepare_vcf(pair_vcf,log_file=log_file)
+    prepare_vcf(single_vcf,log_file=log_file)
     pair_sample_name = os.popen("zgrep '^#C' %s | cut -f 10-" % pair_vcf).read().replace('\n', '').replace('\t', ',')
     single_sample_name = os.popen("zgrep '^#C' %s | cut -f 10-" % single_vcf).read().replace('\n', '').replace('\t',
                                                                                                                ',')
 
-    formatted_line = '''%s view {vcf} -R {bed} -s ^{SM} --force-samples | vcf-sort > {output}''' % bcftools_path
-    cmdline1 = formatted_line.format(vcf=pair_vcf.replace('.gz', '') + '.gz', bed=bed, output=output_vcf + '1',
+    formatted_line = '''{bcftools_path} view {vcf} -R {bed} -s ^{SM} --force-samples | {bcftools_path} sort > {output}; '''
+    cmdline1 = formatted_line.format(vcf=pair_vcf.replace('.gz', '') + '.gz',
+                                     bcftools_path=bcftools_path,
+                                     bed=bed,
+                                     output=output_vcf + '1',
                                      SM=pair_sample_name)
-    cmdline2 = formatted_line.format(vcf=single_vcf.replace('.gz', '') + '.gz', bed=bed, output=output_vcf + '2',
+    cmdline2 = formatted_line.format(vcf=single_vcf.replace('.gz', '') + '.gz',
+                                     bcftools_path=bcftools_path,
+                                     bed=bed,
+                                     output=output_vcf + '2',
                                      SM=single_sample_name)
-    print(cmdline1, cmdline2)
-    os.system(cmdline1)
-    os.system(cmdline2)
+    run_cmd(cmdline1, log_file=log_file)
+    run_cmd(cmdline2, log_file=log_file)
 
-    prepare_vcf(output_vcf + '1')
-    prepare_vcf(output_vcf + '2')
+    prepare_vcf(output_vcf + '1',log_file=log_file)
+    prepare_vcf(output_vcf + '2',log_file=log_file)
 
     formatted_line2 = """{bcftools} concat {o1} {o2} -a -d all > {output}""".format(
-        bcftools = bcftools_path,
+        bcftools=bcftools_path,
         o1=output_vcf + '1.gz',
         o2=output_vcf + '2.gz',
-        output=output_vcf)
-    os.system(formatted_line2)
-    os.system('rm {o1}* ;rm {o2}*'.format(o1=output_vcf + '1', o2=output_vcf + '2'))
-    prepare_vcf(output_vcf)
+        output=output_vcf+'3')
+    run_cmd(formatted_line2, log_file=log_file)
 
+
+    with open(output_vcf+'3',"r") as fr:
+        with open(output_vcf,'w') as f1:
+            for row in fr:
+                if row.startswith("##SAMPLE=<ID="):
+                    continue
+                f1.write(row)
+    prepare_vcf(output_vcf, log_file=log_file)
+    run_cmd('rm {o}1* ;rm {o}2* ; rm {o}3* '.format(o=output_vcf))
 
 if __name__ == '__main__':
     import sys
