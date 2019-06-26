@@ -11,6 +11,8 @@ __pycache__/
 # special
 /tutorial
 test_set/*run*/
+luigi.cfg
+luigi_history.db
 # C extensions
 *.so
 

@@ -1,7 +1,7 @@
 import sys
 from os.path import dirname, join
 
-sys.path.insert(0, dirname(dirname(__file__)))
+sys.path.insert(0, dirname(dirname(dirname(__file__))))
 import luigi
 from luigi_pipelines import run_cmd, valid_path, config
 from luigi_pipelines.share_luigi_tasks import BaseRecalibrator, base_luigi_task
@@ -9,7 +9,7 @@ from luigi_pipelines.SomaticPipelines_gatk4 import new_Annovar2 as somatic_a2
 from luigi_pipelines.SomaticPipelines_gatk4 import new_Annovar1 as somatic_a1
 from GermlinePipelines_gatk4 import new_Annovar2 as germline_a2
 
-project_root_path = dirname(dirname(__file__))
+project_root_path = dirname(dirname(dirname(__file__)))
 
 
 class add_cov(base_luigi_task):

@@ -43,7 +43,7 @@ class main_entry(luigi.Task):
                                                                dry_run=self.dry_run))
 
         elif antype in ['somatic', "somatic_gatk4"]:
-            from post_pipelines_analysis.post_somatic_luigitask import preprocess_vcf,run_pcgr
+            from post_pipelines_analysis.luigi_tasks.post_somatic import run_pcgr
             if antype == "somatic":
                 from SomaticPipelines import new_Annovar2 as somatic_a2
                 from GermlinePipelines import new_Annovar2 as germline_a2
