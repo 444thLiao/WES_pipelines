@@ -7,9 +7,57 @@ sys.path.insert(0, dirname(dirname(__file__)))
 sys.path.insert(0, dirname(__file__))
 from parse_file_name import fileparser
 from share_luigi_tasks import quality_assessment
+from luigi_pipelines import run_cmd,valid_path
+import click
 
 
-class main_entry(luigi.Task):
+project_root_path = dirname(dirname(__file__))
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+@click.argument('cmd', nargs=-1)
+def run(cmd):
+    luigi.run(cmdline_args=cmd)
+
+
+
+@cli.command()
+@click.option("-o", "--odir", help="output directory for testing ...")
+def test_germline(odir):
+    run_cmd(
+        f"python3 {project_root_path}/luigi_pipelines/main.py workflow --tab {project_root_path}/test_set/germline/data_input.tsv --odir {odir} --analysis-type germline --workers 5 --log-path {odir}/cmd_log.txt",
+        dry_run=False)
+
+
+@cli.command()
+@click.option("-o", "--odir", help="output directory for testing ...")
+def test_germline_gatk4(odir):
+    run_cmd(
+        f"python3 {project_root_path}/luigi_pipelines/main.py workflow --tab {project_root_path}/test_set/germline/data_input.tsv --odir {odir} --analysis-type germline_gatk4 --workers 5 --log-path {odir}/cmd_log.txt",
+        dry_run=False)
+
+
+@cli.command()
+@click.option("-o", "--odir", help="output directory for testing ...")
+def test_somatic(odir):
+    run_cmd(
+        f"python3 {project_root_path}/luigi_pipelines/main.py workflow --tab {project_root_path}/test_set/somatic/data_input.tsv --odir {odir} --analysis-type somatic --workers 5 --log-path {odir}/cmd_log.txt",
+        dry_run=False)
+
+
+@cli.command()
+@click.option("-o", "--odir", help="output directory for testing ...")
+def test_somatic_gatk4(odir):
+    run_cmd(
+        f"python3 {project_root_path}/luigi_pipelines/main.py workflow --tab {project_root_path}/test_set/somatic/data_input.tsv --odir {odir} --analysis-type somatic_gatk4 --workers 5 --log-path {odir}/cmd_log.txt",
+        dry_run=False)
+
+
+
+class workflow(luigi.Task):
     tab = luigi.Parameter()
     odir = luigi.Parameter()
     analysis_type = luigi.Parameter(default="germline")
@@ -118,8 +166,8 @@ class main_entry(luigi.Task):
 
 
 if __name__ == '__main__':
-    luigi.run()
+    cli()
 
-# python3 luigi_pipelines/main.py main_entry --tab test_set/germline/data_input.csv --odir test_set/germline_run_gatk4 --analysis-type germline --workers 5 --log-path test_set/germline_run_gatk4/cmd_log.txt
+# python3 luigi_pipelines/main.py workflow --tab test_set/germline/data_input.csv --odir test_set/germline_run_gatk4 --analysis-type germline --workers 5 --log-path test_set/germline_run_gatk4/cmd_log.txt
 
-# python3 /home/liaoth/project/Whole_pipelines/luigi_pipelines/main.py main_entry --tab /home/liaoth/project/Whole_pipelines/test_set/somatic/data_input.csv --odir /home/liaoth/project/Whole_pipelines/test_set/somatic_run --analysis-type somatic --workers 5 --log-path /home/liaoth/project/Whole_pipelines/test_set/somatic_run/cmd_log.txt
+# python3 /home/liaoth/project/Whole_pipelines/luigi_pipelines/main.py workflow --tab /home/liaoth/project/Whole_pipelines/test_set/somatic/data_input.csv --odir /home/liaoth/project/Whole_pipelines/test_set/somatic_run --analysis-type somatic --workers 5 --log-path /home/liaoth/project/Whole_pipelines/test_set/somatic_run/cmd_log.txt

@@ -18,7 +18,7 @@ def cli():
 @click.option("-o", "--odir", help="output directory for testing ...")
 def test_germline(odir):
     run_cmd(
-        f"python3 {project_root_path}/luigi_pipelines/main.py main_entry --tab {project_root_path}/test_set/germline/data_input.tsv --odir {odir} --analysis-type germline --workers 5 --log-path {odir}/cmd_log.txt",
+        f"python3 {project_root_path}/luigi_pipelines/main.py workflow --tab {project_root_path}/test_set/germline/data_input.tsv --odir {odir} --analysis-type germline --workers 5 --log-path {odir}/cmd_log.txt",
         dry_run=False)
 
 
@@ -26,7 +26,7 @@ def test_germline(odir):
 @click.option("-o", "--odir", help="output directory for testing ...")
 def test_germline_gatk4(odir):
     run_cmd(
-        f"python3 {project_root_path}/luigi_pipelines/main.py main_entry --tab {project_root_path}/test_set/germline/data_input.tsv --odir {odir} --analysis-type germline_gatk4 --workers 5 --log-path {odir}/cmd_log.txt",
+        f"python3 {project_root_path}/luigi_pipelines/main.py workflow --tab {project_root_path}/test_set/germline/data_input.tsv --odir {odir} --analysis-type germline_gatk4 --workers 5 --log-path {odir}/cmd_log.txt",
         dry_run=False)
 
 
@@ -34,7 +34,7 @@ def test_germline_gatk4(odir):
 @click.option("-o", "--odir", help="output directory for testing ...")
 def test_somatic(odir):
     run_cmd(
-        f"python3 {project_root_path}/luigi_pipelines/main.py main_entry --tab {project_root_path}/test_set/somatic/data_input.tsv --odir {odir} --analysis-type somatic --workers 5 --log-path {odir}/cmd_log.txt",
+        f"python3 {project_root_path}/luigi_pipelines/main.py workflow --tab {project_root_path}/test_set/somatic/data_input.tsv --odir {odir} --analysis-type somatic --workers 5 --log-path {odir}/cmd_log.txt",
         dry_run=False)
 
 
@@ -42,7 +42,7 @@ def test_somatic(odir):
 @click.option("-o", "--odir", help="output directory for testing ...")
 def test_somatic_gatk4(odir):
     run_cmd(
-        f"python3 {project_root_path}/luigi_pipelines/main.py main_entry --tab {project_root_path}/test_set/somatic/data_input.tsv --odir {odir} --analysis-type somatic_gatk4 --workers 5 --log-path {odir}/cmd_log.txt",
+        f"python3 {project_root_path}/luigi_pipelines/main.py workflow --tab {project_root_path}/test_set/somatic/data_input.tsv --odir {odir} --analysis-type somatic_gatk4 --workers 5 --log-path {odir}/cmd_log.txt",
         dry_run=False)
 
 
